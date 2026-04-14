@@ -9,15 +9,20 @@
       max-width: 600px;
       margin: 40px auto;
     }
+    h2 {
+      margin-bottom: 20px;
+    }
     input, button {
       width: 100%;
       padding: 10px;
       margin-bottom: 10px;
+      font-size: 14px;
     }
     textarea {
       width: 100%;
-      height: 250px;
+      height: 300px;
       margin-top: 10px;
+      font-size: 13px;
     }
   </style>
 </head>
@@ -27,12 +32,13 @@
 
 <input id="pickup" placeholder="상차지 (예: 용마, 서초, 병원명)">
 <input id="pickupTime" placeholder="상차 시간">
+<input id="pickupManager" placeholder="상차 담당자">
 
 <input id="drop" placeholder="하차지">
 <input id="dropTime" placeholder="하차 시간">
+<input id="dropManager" placeholder="하차 담당자">
 
 <input id="equipment" placeholder="장비명">
-<input id="manager" placeholder="담당자">
 
 <button onclick="generate()">생성</button>
 
@@ -45,53 +51,56 @@ const contactMap = {
   "김기훈": "010-3899-1656",
   "박윤아": "010-3020-0568",
   "김성훈": "010-5419-6263",
-  "이가람": "010-9294-6541"
+  "이가람": "010-9294-6541",
+  "오상걸": "010-9969-0149",
+  "김건태": "010-9900-3537",
+  "백승철": "010-5573-3680"
 };
 
 const locationMap = {
   "용마": {
     name: "김포 용마창고",
-    address: "경기도 김포시 고촌읍 아라육로 58번길 35-28",
-    manager: "김기훈"
+    address: "경기도 김포시 고촌읍 아라육로 58번길 35-28"
   },
   "서초": {
     name: "서초 사무실",
-    address: "서울 서초구 강남대로 327 3층",
-    manager: "박윤아"
+    address: "서울 서초구 강남대로 327 3층"
   }
 };
 
-function resolveLocation(input, fallbackManager) {
+function resolveLocation(input) {
   if (input.includes("용마")) return locationMap["용마"];
   if (input.includes("서초")) return locationMap["서초"];
 
   return {
     name: input,
-    address: "",
-    manager: fallbackManager
+    address: ""
   };
 }
 
 function generate() {
   const pickup = document.getElementById("pickup").value;
   const pickupTime = document.getElementById("pickupTime").value;
+  const pickupManager = document.getElementById("pickupManager").value;
+
   const drop = document.getElementById("drop").value;
   const dropTime = document.getElementById("dropTime").value;
+  const dropManager = document.getElementById("dropManager").value;
+
   const equipment = document.getElementById("equipment").value;
-  const manager = document.getElementById("manager").value;
 
-  const pick = resolveLocation(pickup, manager);
-  const dropLoc = resolveLocation(drop, manager);
+  const pick = resolveLocation(pickup);
+  const dropLoc = resolveLocation(drop);
 
-  const pickPhone = contactMap[pick.manager] || "";
-  const dropPhone = contactMap[dropLoc.manager] || "";
+  const pickPhone = contactMap[pickupManager] || "";
+  const dropPhone = contactMap[dropManager] || "";
 
   const text = `[상차]
 상차 : ${pick.name}
 일시 : ${pickupTime || "(조율가능)"}
 장비명 : ${equipment}
 주소 : ${pick.address}
-담당자 : ${pick.manager}
+담당자 : ${pickupManager}
 연락처 : ${pickPhone}
 
 [하차]
@@ -99,7 +108,7 @@ function generate() {
 일시 : ${dropTime || "(조율가능)"}
 장비명 : ${equipment}
 주소 : ${dropLoc.address}
-담당자 : ${dropLoc.manager}
+담당자 : ${dropManager}
 연락처 : ${dropPhone}`;
 
   document.getElementById("result").value = text;
