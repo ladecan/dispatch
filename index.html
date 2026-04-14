@@ -1,40 +1,34 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8">
-  <title>배차 생성기</title>
-  <style>
-    body {
-      font-family: Arial;
-      max-width: 600px;
-      margin: 40px auto;
-    }
-    h2 {
-      margin-bottom: 20px;
-    }
-    input, button {
-      width: 100%;
-      padding: 10px;
-      margin-bottom: 10px;
-      font-size: 14px;
-    }
-    textarea {
-      width: 100%;
-      height: 300px;
-      margin-top: 10px;
-      font-size: 13px;
-    }
-  </style>
+<meta charset="UTF-8">
+<title>배차 생성기</title>
+
+<script src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=YOUR_KAKAO_KEY&libraries=services"></script>
+
+<style>
+body { font-family: Arial; max-width: 600px; margin: 40px auto; }
+input, button { width: 100%; padding: 10px; margin-bottom: 10px; }
+textarea { width: 100%; height: 300px; margin-top: 10px; }
+.result-box { border:1px solid #ccc; max-height:150px; overflow:auto; margin-bottom:10px;}
+.result-item { padding:8px; cursor:pointer; }
+.result-item:hover { background:#f0f0f0; }
+</style>
 </head>
+
 <body>
 
 <h2>🚚 배차 생성기</h2>
 
-<input id="pickup" placeholder="상차지 (예: 용마, 서초, 병원명)">
+<!-- 상차 -->
+<input id="pickup" placeholder="상차지 검색">
+<div id="pickupResults" class="result-box"></div>
 <input id="pickupTime" placeholder="상차 시간">
 <input id="pickupManager" placeholder="상차 담당자">
 
-<input id="drop" placeholder="하차지">
+<!-- 하차 -->
+<input id="drop" placeholder="하차지 검색">
+<div id="dropResults" class="result-box"></div>
 <input id="dropTime" placeholder="하차 시간">
 <input id="dropManager" placeholder="하차 담당자">
 
@@ -43,7 +37,6 @@
 <button onclick="generate()">생성</button>
 
 <textarea id="result"></textarea>
-
 <button onclick="copyText()">복사</button>
 
 <script>
@@ -51,10 +44,7 @@ const contactMap = {
   "김기훈": "010-3899-1656",
   "박윤아": "010-3020-0568",
   "김성훈": "010-5419-6263",
-  "이가람": "010-9294-6541",
-  "오상걸": "010-9969-0149",
-  "김건태": "010-9900-3537",
-  "백승철": "010-5573-3680"
+  "이가람": "010-9294-6541"
 };
 
 const locationMap = {
@@ -68,13 +58,77 @@ const locationMap = {
   }
 };
 
-function resolveLocation(input) {
+const geocoder = new kakao.maps.services.Places();
+
+let pickupAddress = "";
+let dropAddress = "";
+
+// 검색 함수
+function searchPlaces(keyword, target) {
+  if (!keyword) return;
+
+  geocoder.keywordSearch(keyword, function(result, status) {
+    if (status === kakao.maps.services.Status.OK) {
+      displayResults(result, target);
+    }
+  });
+}
+
+// 결과 표시
+function displayResults(places, target) {
+  const box = document.getElementById(target + "Results");
+  box.innerHTML = "";
+
+  places.forEach(place => {
+    const div = document.createElement("div");
+    div.className = "result-item";
+    div.innerText = place.place_name + " / " + place.address_name;
+
+    div.onclick = () => {
+      document.getElementById(target).value = place.place_name;
+      if (target === "pickup") pickupAddress = place.address_name;
+      else dropAddress = place.address_name;
+      box.innerHTML = "";
+    };
+
+    box.appendChild(div);
+  });
+}
+
+// 입력 시 자동 검색
+document.getElementById("pickup").addEventListener("input", (e) => {
+  const val = e.target.value;
+  if (val.includes("용마")) {
+    pickupAddress = locationMap["용마"].address;
+    return;
+  }
+  if (val.includes("서초")) {
+    pickupAddress = locationMap["서초"].address;
+    return;
+  }
+  searchPlaces(val, "pickup");
+});
+
+document.getElementById("drop").addEventListener("input", (e) => {
+  const val = e.target.value;
+  if (val.includes("용마")) {
+    dropAddress = locationMap["용마"].address;
+    return;
+  }
+  if (val.includes("서초")) {
+    dropAddress = locationMap["서초"].address;
+    return;
+  }
+  searchPlaces(val, "drop");
+});
+
+function resolveLocation(input, address) {
   if (input.includes("용마")) return locationMap["용마"];
   if (input.includes("서초")) return locationMap["서초"];
 
   return {
     name: input,
-    address: ""
+    address: address
   };
 }
 
@@ -89,8 +143,8 @@ function generate() {
 
   const equipment = document.getElementById("equipment").value;
 
-  const pick = resolveLocation(pickup);
-  const dropLoc = resolveLocation(drop);
+  const pick = resolveLocation(pickup, pickupAddress);
+  const dropLoc = resolveLocation(drop, dropAddress);
 
   const pickPhone = contactMap[pickupManager] || "";
   const dropPhone = contactMap[dropManager] || "";
