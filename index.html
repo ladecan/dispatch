@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>배차 메시지 매니저 PRO</title>
+    <title>배차 메시지 매니저 - 주소 완전판</title>
     
     <script src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=9eb81b2d9508d3c7222269657b22d9a6&libraries=services"></script>
     
@@ -11,26 +11,26 @@
 
     <style>
         /* ==================================================
-           [1. 글로벌 스타일 및 테마 변수]
+           [1. CSS 변수 및 기본 테마 정의]
            ==================================================
         */
         :root {
-            --primary-navy: #1a1a2e;       /* 메인 네이비 */
-            --point-red: #e94560;          /* 포인트 레드 */
-            --soft-blue: #0f3460;          /* 서브 블루 */
-            --bg-color: #eef1f8;           /* 배경색 */
-            --card-bg: #ffffff;            /* 카드 배경 */
-            --input-fill: #f7f8fc;         /* 입력창 배경 */
-            --border-line: #e2e5ef;        /* 경계선 색상 */
-            --text-dark: #1a1a2e;          /* 메인 텍스트 */
-            --text-gray: #7b8196;          /* 서브 텍스트 */
-            --green-light: #d1fae5;        /* 하차지 포인트 */
-            --yellow-light: #fff3cd;       /* 상차지 포인트 */
-            --shadow-standard: 0 4px 20px rgba(26, 26, 46, 0.08);
-            --shadow-hover: 0 8px 30px rgba(26, 26, 46, 0.12);
+            --primary-navy: #1a1a2e;       /* 메인 컬러 */
+            --accent-red: #e94560;         /* 포인트 컬러 */
+            --sub-blue: #0f3460;           /* 보조 컬러 */
+            --bg-canvas: #eef1f8;          /* 배경색 */
+            --card-surface: #ffffff;       /* 카드 배경 */
+            --input-base: #f7f8fc;         /* 입력창 기본 */
+            --border-standard: #e2e5ef;    /* 경계선 */
+            --text-bold: #1a1a2e;          /* 강조 텍스트 */
+            --text-dim: #7b8196;           /* 흐린 텍스트 */
+            --green-active: #2ecc71;       /* 성공/하차 색상 */
+            --orange-active: #f39c12;      /* 상차 색상 */
+            --shadow-light: 0 4px 20px rgba(26, 26, 46, 0.08);
+            --shadow-deep: 0 12px 35px rgba(26, 26, 46, 0.15);
         }
 
-        /* 기본 리셋 */
+        /* 여백 및 폰트 초기화 */
         * {
             box-sizing: border-box;
             margin: 0;
@@ -39,335 +39,321 @@
 
         body {
             font-family: 'Noto Sans KR', sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-dark);
-            padding: 50px 20px;
-            line-height: 1.7;
+            background-color: var(--bg-canvas);
+            color: var(--text-bold);
+            padding: 40px 20px;
+            line-height: 1.8;
             -webkit-font-smoothing: antialiased;
         }
 
         /* ==================================================
-           [2. 레이아웃 컨테이너]
+           [2. 메인 구조 레이아웃]
            ==================================================
         */
-        .main-wrapper {
-            max-width: 950px;
+        .app-container {
+            max-width: 1000px;
             margin: 0 auto;
         }
 
-        /* 상단 헤더 섹션 */
-        .app-header {
+        /* 헤더 디자인 */
+        .main-header {
             display: flex;
             align-items: center;
-            margin-bottom: 45px;
+            margin-bottom: 50px;
             gap: 25px;
-            animation: fadeInDown 0.6s ease-out;
+            animation: fadeIn 0.8s ease;
         }
 
-        .icon-container {
-            width: 70px;
-            height: 70px;
+        .main-header .icon-box {
+            width: 80px;
+            height: 80px;
             background-color: var(--primary-navy);
-            border-radius: 20px;
+            border-radius: 24px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 32px;
-            box-shadow: 0 10px 20px rgba(26, 26, 46, 0.2);
+            font-size: 36px;
+            box-shadow: 0 10px 25px rgba(26, 26, 46, 0.25);
         }
 
-        .title-group h1 {
-            font-size: 32px;
+        .header-content h1 {
+            font-size: 34px;
             font-weight: 900;
             letter-spacing: -1.5px;
             color: var(--primary-navy);
-            margin-bottom: 5px;
         }
 
-        .title-group p {
-            color: var(--text-gray);
+        .header-content p {
+            color: var(--text-dim);
             font-size: 16px;
             font-weight: 400;
+            margin-top: 5px;
         }
 
         /* ==================================================
-           [3. 카드 패널 시스템]
+           [3. 입력 카드 섹션]
            ==================================================
         */
-        .content-grid {
+        .card-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 30px;
             margin-bottom: 30px;
         }
 
-        /* 반응형 모바일 대응 */
-        @media (max-width: 850px) {
-            .content-grid {
+        @media (max-width: 900px) {
+            .card-grid {
                 grid-template-columns: 1fr;
             }
         }
 
-        .ui-card {
-            background: var(--card-bg);
-            border-radius: 28px;
-            padding: 35px;
-            border: 1px solid var(--border-line);
-            box-shadow: var(--shadow-standard);
-            transition: all 0.3s ease;
+        .panel-card {
+            background: var(--card-surface);
+            border-radius: 30px;
+            padding: 40px;
+            border: 1px solid var(--border-standard);
+            box-shadow: var(--shadow-light);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
         }
 
-        .ui-card:hover {
-            transform: translateY(-5px);
-            box-shadow: var(--shadow-hover);
+        .panel-card:hover {
+            transform: translateY(-8px);
+            box-shadow: var(--shadow-deep);
         }
 
-        /* 카드 제목 라벨 */
-        .card-label {
+        /* 카드별 타이틀 라벨 */
+        .status-header {
             display: flex;
             align-items: center;
-            margin-bottom: 30px;
+            margin-bottom: 35px;
             padding-bottom: 15px;
-            border-bottom: 1.5px solid #f0f0f5;
+            border-bottom: 2px solid #f0f0f7;
         }
 
-        .label-circle {
-            width: 36px;
-            height: 36px;
-            border-radius: 12px;
+        .status-dot {
+            width: 40px;
+            height: 40px;
+            border-radius: 14px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-weight: 800;
-            font-size: 15px;
+            font-weight: 900;
+            font-size: 16px;
         }
 
-        .label-up { background-color: var(--yellow-light); color: #b45309; }
-        .label-down { background-color: var(--green-light); color: #065f46; }
+        .dot-pickup { background-color: #fff3cd; color: #b45309; }
+        .dot-drop { background-color: #d1fae5; color: #065f46; }
 
-        .label-title {
+        .status-label {
             margin-left: 15px;
-            font-size: 20px;
+            font-size: 22px;
             font-weight: 800;
             color: var(--primary-navy);
         }
 
         /* ==================================================
-           [4. 입력 필드 및 폼 디자인]
+           [4. 폼 및 입력 엘리먼트 디자인]
            ==================================================
         */
-        .input-group {
+        .form-row {
             margin-bottom: 25px;
             position: relative;
         }
 
-        .input-group label {
+        .form-row label {
             display: block;
-            font-size: 13px;
+            font-size: 14px;
             font-weight: 700;
-            color: var(--text-gray);
+            color: var(--text-dim);
             margin-bottom: 10px;
             padding-left: 5px;
-            text-transform: uppercase;
             letter-spacing: 0.5px;
         }
 
-        .input-group input {
+        .form-row input {
             width: 100%;
-            padding: 16px 20px;
-            border: 2px solid var(--border-line);
-            border-radius: 14px;
-            font-size: 15px;
+            padding: 18px 22px;
+            border: 2px solid var(--border-standard);
+            border-radius: 16px;
+            font-size: 16px;
             font-family: inherit;
-            background-color: var(--input-fill);
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            background-color: var(--input-base);
+            transition: all 0.3s ease;
             outline: none;
-            color: var(--text-dark);
+            color: var(--text-bold);
         }
 
-        .input-group input:focus {
-            border-color: var(--point-red);
+        .form-row input:focus {
+            border-color: var(--accent-red);
             background-color: #ffffff;
-            box-shadow: 0 0 0 6px rgba(233, 69, 96, 0.08);
+            box-shadow: 0 0 0 6px rgba(233, 69, 96, 0.07);
         }
 
-        /* 읽기 전용/확정된 주소 필드 */
-        .input-group input[readonly] {
-            border-color: #2ecc71;
+        /* 주소 자동입력 전용 (Read-Only) 스타일 */
+        .form-row input[readonly] {
+            border-color: var(--green-active);
             background-color: #f0fdf4;
-            color: #15803d;
+            color: #166534;
             font-weight: 600;
-            cursor: default;
         }
 
         /* ==================================================
-           [5. 장소 검색 드롭다운 결과]
+           [5. 검색 드롭다운 시스템]
            ==================================================
         */
-        .search-dropdown {
+        .dropdown-results {
             position: absolute;
             top: 100%;
             left: 0;
             right: 0;
             background: #ffffff;
-            border-radius: 18px;
-            box-shadow: 0 15px 40px rgba(26, 26, 46, 0.18);
+            border-radius: 20px;
+            box-shadow: 0 15px 45px rgba(26, 26, 46, 0.2);
             z-index: 9999;
             margin-top: 10px;
-            max-height: 320px;
+            max-height: 350px;
             overflow-y: auto;
             display: none;
-            border: 1px solid var(--border-line);
+            border: 1px solid var(--border-standard);
         }
 
-        .search-dropdown.visible {
+        .dropdown-results.open {
             display: block;
-            animation: slideInUp 0.3s ease;
+            animation: slideUp 0.3s ease-out;
         }
 
-        .dropdown-row {
-            padding: 18px 25px;
+        .result-row {
+            padding: 20px 25px;
             cursor: pointer;
-            border-bottom: 1px solid #f5f5f9;
-            transition: background 0.2s;
+            border-bottom: 1px solid #f5f5fa;
+            transition: background 0.2s ease;
         }
 
-        .dropdown-row:last-child {
-            border-bottom: none;
+        .result-row:hover {
+            background-color: #f0f4ff;
         }
 
-        .dropdown-row:hover {
-            background-color: #f4f7ff;
-        }
-
-        .row-place-name {
-            font-weight: 700;
+        .res-title {
+            font-weight: 800;
             font-size: 16px;
             color: var(--primary-navy);
-            margin-bottom: 4px;
+            margin-bottom: 5px;
         }
 
-        .row-address-name {
+        .res-addr {
             font-size: 13px;
-            color: var(--text-gray);
-            line-height: 1.4;
+            color: var(--text-dim);
+            line-height: 1.5;
         }
 
         /* ==================================================
-           [6. 지도 출력 영역]
+           [6. 지도 렌더링 영역]
            ==================================================
         */
-        .map-display {
+        .map-wrapper {
             width: 100%;
-            height: 220px;
-            border-radius: 18px;
-            border: 2px solid var(--border-line);
-            margin-top: 20px;
+            height: 240px;
+            border-radius: 20px;
+            border: 2px solid var(--border-standard);
+            margin-top: 25px;
             overflow: hidden;
-            display: none;
+            display: none; /* 검색 전에는 숨김 */
         }
 
-        .map-display.active {
+        .map-wrapper.show {
             display: block;
-            animation: fadeIn 0.5s ease;
+            animation: fadeIn 0.6s ease;
         }
 
         /* ==================================================
-           [7. 추가 정보 영역 (하단)]
+           [7. 추가 정보 및 버튼]
            ==================================================
         */
-        .extra-info-row {
-            background: var(--card-bg);
-            border-radius: 28px;
-            padding: 30px;
-            border: 1px solid var(--border-line);
-            box-shadow: var(--shadow-standard);
+        .bottom-panel {
+            background: var(--card-surface);
+            border-radius: 30px;
+            padding: 35px;
+            border: 1px solid var(--border-standard);
+            box-shadow: var(--shadow-light);
             margin-bottom: 30px;
             display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 25px;
+            grid-template-columns: 1fr 1.5fr;
+            gap: 30px;
         }
 
         @media (max-width: 600px) {
-            .extra-info-row {
-                grid-template-columns: 1fr;
-            }
+            .bottom-panel { grid-template-columns: 1fr; }
         }
 
-        /* ==================================================
-           [8. 결과 및 복사 섹션]
-           ==================================================
-        */
-        .btn-build {
+        .btn-generate {
             width: 100%;
-            padding: 22px;
-            background-color: var(--point-red);
+            padding: 24px;
+            background-color: var(--accent-red);
             color: #ffffff;
             border: none;
-            border-radius: 20px;
-            font-size: 20px;
-            font-weight: 800;
+            border-radius: 22px;
+            font-size: 22px;
+            font-weight: 900;
             cursor: pointer;
-            margin-top: 10px;
-            box-shadow: 0 10px 25px rgba(233, 69, 96, 0.3);
-            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 12px 30px rgba(233, 69, 96, 0.35);
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 12px;
+            gap: 15px;
         }
 
-        .btn-build:hover {
-            transform: translateY(-5px);
+        .btn-generate:hover {
+            transform: translateY(-6px);
             background-color: #d63651;
-            box-shadow: 0 15px 35px rgba(233, 69, 96, 0.4);
+            box-shadow: 0 18px 40px rgba(233, 69, 96, 0.45);
         }
 
-        .btn-build:active {
-            transform: translateY(-1px);
-        }
-
-        .result-container {
-            margin-top: 40px;
+        /* ==================================================
+           [8. 최종 결과물 출력 섹션]
+           ==================================================
+        */
+        .result-section {
+            margin-top: 50px;
             background-color: var(--primary-navy);
-            border-radius: 30px;
-            padding: 40px;
+            border-radius: 40px;
+            padding: 50px;
             animation: fadeInUp 0.8s ease;
         }
 
-        .result-top {
+        .result-info {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 25px;
+            margin-bottom: 30px;
         }
 
-        .result-top h2 {
+        .result-info h2 {
             color: rgba(255, 255, 255, 0.6);
-            font-size: 15px;
-            font-weight: 600;
+            font-size: 16px;
+            font-weight: 700;
             text-transform: uppercase;
-            letter-spacing: 2px;
+            letter-spacing: 2.5px;
         }
 
         .btn-copy {
-            padding: 12px 24px;
-            background: rgba(255, 255, 255, 0.08);
+            padding: 14px 28px;
+            background: rgba(255, 255, 255, 0.1);
             color: #ffffff;
-            border: 1.5px solid rgba(255, 255, 255, 0.2);
-            border-radius: 12px;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-radius: 14px;
             cursor: pointer;
-            font-weight: 700;
-            font-size: 14px;
-            transition: all 0.2s;
+            font-weight: 800;
+            font-size: 15px;
+            transition: all 0.3s;
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 10px;
         }
 
         .btn-copy:hover {
-            background: rgba(255, 255, 255, 0.15);
-            border-color: rgba(255, 255, 255, 0.4);
+            background: rgba(255, 255, 255, 0.2);
+            border-color: #ffffff;
         }
 
         .btn-copy.success {
@@ -375,54 +361,49 @@
             border-color: #2ecc71;
         }
 
-        .text-output {
+        .output-area {
             width: 100%;
-            height: 350px;
-            background: rgba(255, 255, 255, 0.04);
+            height: 400px;
+            background: rgba(255, 255, 255, 0.05);
             border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 20px;
-            padding: 25px;
-            color: #f1f3f9;
+            border-radius: 25px;
+            padding: 30px;
+            color: #ffffff;
             font-family: 'Noto Sans KR', monospace;
-            font-size: 16px;
-            line-height: 1.9;
+            font-size: 17px;
+            line-height: 2.0;
             resize: none;
             outline: none;
         }
 
-        /* 담당자 하단 전화번호 힌트 */
-        .manager-hint {
-            font-size: 13px;
-            color: var(--point-red);
-            font-weight: 700;
-            margin-top: 8px;
-            min-height: 22px;
+        /* 담당자 전화번호 미리보기 힌트 */
+        .phone-hint {
+            font-size: 14px;
+            color: var(--accent-red);
+            font-weight: 800;
+            margin-top: 10px;
+            min-height: 24px;
             display: flex;
             align-items: center;
-            gap: 6px;
+            gap: 8px;
         }
 
         /* ==================================================
-           [9. 애니메이션 키프레임]
+           [9. 애니메이션 정의]
            ==================================================
         */
-        @keyframes fadeInDown {
-            from { opacity: 0; transform: translateY(-30px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        @keyframes fadeInUp {
-            from { opacity: 0; transform: translateY(30px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
         @keyframes fadeIn {
             from { opacity: 0; }
             to { opacity: 1; }
         }
 
-        @keyframes slideInUp {
-            from { opacity: 0; transform: translateY(10px); }
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(40px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(15px); }
             to { opacity: 1; transform: translateY(0); }
         }
 
@@ -430,122 +411,129 @@
 </head>
 <body>
 
-<div class="main-wrapper">
-    <header class="app-header">
-        <div class="icon-container">🚚</div>
-        <div class="title-group">
-            <h1>배차 정보 생성 매니저</h1>
-            <p>상하차지 정보를 검색하고 카카오톡/문자용 메시지를 생성합니다.</p>
+<div class="app-container">
+    
+    <header class="main-header">
+        <div class="icon-box">🚛</div>
+        <div class="header-content">
+            <h1>운송 배차 매니저 PRO</h1>
+            <p>상세 주소와 층수까지 완벽하게 포함된 배차 메시지를 생성합니다.</p>
         </div>
     </header>
 
-    <div class="content-grid">
+    <div class="card-grid">
         
-        <section class="ui-card">
-            <div class="card-label">
-                <div class="label-circle label-up">상</div>
-                <span class="label-title">상차지 설정</span>
+        <section class="panel-card">
+            <div class="status-header">
+                <div class="status-dot dot-pickup">상</div>
+                <span class="status-label">상차지 정보 설정</span>
             </div>
 
-            <div class="input-group">
-                <label>장소 명칭 검색</label>
-                <input type="text" id="p_search_input" placeholder="장소명 또는 키워드 입력 (예: 용마)">
-                <div id="p_search_dropdown" class="search-dropdown"></div>
+            <div class="form-row">
+                <label>장소 키워드 검색</label>
+                <input type="text" id="p_search" placeholder="장소명 입력 (예: 용마, 병원명 등)">
+                <div id="p_dropdown" class="dropdown-results"></div>
             </div>
 
-            <div class="input-group">
-                <label>확정 도로명 주소</label>
-                <input type="text" id="p_address_fixed" readonly placeholder="장소 검색 시 자동 매칭됩니다.">
+            <div class="form-row">
+                <label>기본 주소 (도로명)</label>
+                <input type="text" id="p_addr_base" readonly placeholder="검색 시 자동 입력됩니다.">
             </div>
 
-            <div id="p_map_container" class="map-display">
-                <div id="p_kakao_map" style="width:100%; height:100%;"></div>
+            <div class="form-row">
+                <label>상세 주소 (층수/호수 등)</label>
+                <input type="text" id="p_addr_detail" placeholder="예: 3층 수술실 앞, 지하 2층 하역장">
             </div>
 
-            <div class="input-group" style="margin-top: 30px;">
-                <label>상차 예정 일시</label>
-                <input type="text" id="p_schedule_time" placeholder="예: 05/22(수) 오전 10시">
+            <div id="p_map_wrap" class="map-wrapper">
+                <div id="p_map_dom" style="width:100%; height:100%;"></div>
             </div>
 
-            <div class="input-group">
-                <label>현장 담당자</label>
-                <input type="text" id="p_manager_name" list="global_manager_list" placeholder="성함 입력">
-                <div id="p_manager_phone_hint" class="manager-hint"></div>
-            </div>
-        </section>
-
-        <section class="ui-card">
-            <div class="card-label">
-                <div class="label-circle label-down">하</div>
-                <span class="label-title">하차지 설정</span>
+            <div class="form-row" style="margin-top: 30px;">
+                <label>상차 일시</label>
+                <input type="text" id="p_time" placeholder="예: 05/25(일) 오전 09시">
             </div>
 
-            <div class="input-group">
-                <label>장소 명칭 검색</label>
-                <input type="text" id="d_search_input" placeholder="병원명, 건물명 등 입력">
-                <div id="d_search_dropdown" class="search-dropdown"></div>
-            </div>
-
-            <div class="input-group">
-                <label>확정 도로명 주소</label>
-                <input type="text" id="d_address_fixed" readonly placeholder="장소 검색 시 자동 매칭됩니다.">
-            </div>
-
-            <div id="d_map_container" class="map-display">
-                <div id="d_kakao_map" style="width:100%; height:100%;"></div>
-            </div>
-
-            <div class="input-group" style="margin-top: 30px;">
-                <label>하차 예정 일시</label>
-                <input type="text" id="d_schedule_time" placeholder="예: 05/22(수) 오후 3시">
-            </div>
-
-            <div class="input-group">
-                <label>현장 담당자</label>
-                <input type="text" id="d_manager_name" list="global_manager_list" placeholder="성함 입력">
-                <div id="d_manager_phone_hint" class="manager-hint"></div>
+            <div class="form-row">
+                <label>상차지 담당자</label>
+                <input type="text" id="p_mgr" list="master_mgr_list" placeholder="성함 입력">
+                <div id="p_hint" class="phone-hint"></div>
             </div>
         </section>
 
-    </div> <div class="extra-info-row">
-        <div class="input-group" style="margin-bottom: 0;">
-            <label>배송 장비 명칭</label>
-            <input type="text" id="target_equipment" placeholder="예: Nordlys, PicoWay 등">
+        <section class="panel-card">
+            <div class="status-header">
+                <div class="status-dot dot-drop">하</div>
+                <span class="status-label">하차지 정보 설정</span>
+            </div>
+
+            <div class="form-row">
+                <label>장소 키워드 검색</label>
+                <input type="text" id="d_search" placeholder="병원명 또는 주소 검색">
+                <div id="d_dropdown" class="dropdown-results"></div>
+            </div>
+
+            <div class="form-row">
+                <label>기본 주소 (도로명)</label>
+                <input type="text" id="d_addr_base" readonly placeholder="검색 시 자동 입력됩니다.">
+            </div>
+
+            <div class="form-row">
+                <label>상세 주소 (층수/호수 등)</label>
+                <input type="text" id="d_addr_detail" placeholder="예: 5층 검사실, 본관 뒤편 1층">
+            </div>
+
+            <div id="d_map_wrap" class="map-wrapper">
+                <div id="d_map_dom" style="width:100%; height:100%;"></div>
+            </div>
+
+            <div class="form-row" style="margin-top: 30px;">
+                <label>하차 일시</label>
+                <input type="text" id="d_time" placeholder="예: 05/25(일) 오후 02시">
+            </div>
+
+            <div class="form-row">
+                <label>하차지 담당자</label>
+                <input type="text" id="d_mgr" list="master_mgr_list" placeholder="성함 입력">
+                <div id="d_hint" class="phone-hint"></div>
+            </div>
+        </section>
+
+    </div> <div class="bottom-panel">
+        <div class="form-row" style="margin-bottom: 0;">
+            <label>운송 대상 장비명</label>
+            <input type="text" id="equip_name" placeholder="예: Nordlys 장비 일체">
         </div>
-        <div class="input-group" style="margin-bottom: 0;">
-            <label>기사님 전달사항 (비고)</label>
-            <input type="text" id="order_memo" placeholder="전달할 특이사항을 적어주세요.">
+        <div class="form-row" style="margin-bottom: 0;">
+            <label>기사님 전달 비고</label>
+            <input type="text" id="main_memo" placeholder="전달할 특이사항을 입력해 주세요.">
         </div>
     </div>
 
-    <button class="btn-build" onclick="handleGenerateAction()">
-        <span>✦</span> 배차 메시지 생성 및 정리하기
+    <button class="btn-generate" onclick="executeMessageBuild()">
+        <span>🚀</span> 최종 배차 메시지 생성하기
     </button>
 
-    <div class="result-container">
-        <div class="result-top">
-            <h2>Generated Logistics Message</h2>
-            <button class="btn-copy" id="final_copy_btn" onclick="executeCopy()">
-                <span>📋</span> 전체 내용 복사
+    <div class="result-section">
+        <div class="result-info">
+            <h2>Final Logistics Information</h2>
+            <button class="btn-copy" id="copy_trigger" onclick="performCopy()">
+                <span>📋</span> 전체 복사하기
             </button>
         </div>
-        <textarea id="final_output_area" class="text-output" readonly></textarea>
+        <textarea id="final_message_box" class="output-area" readonly></textarea>
     </div>
 
-</div> <datalist id="global_manager_list">
-    <option value="김기훈">
-    <option value="오상걸">
-    <option value="박윤아">
-    <option value="김성훈">
-    <option value="이가람">
+</div> <datalist id="master_mgr_list">
+    <option value="김기훈"><option value="오상걸"><option value="박윤아"><option value="김성훈"><option value="이가람">
 </datalist>
 
 
 <script>
     /**
-     * 1. 전역 데이터 설정
+     * 1. 시스템 핵심 데이터 정의
      */
-    const MASTER_CONTACTS = {
+    const CONTACT_MAP = {
         "김기훈": "010-3899-1656",
         "오상걸": "010-9969-0149",
         "박윤아": "010-3020-0568",
@@ -553,255 +541,238 @@
         "이가람": "010-9294-6541"
     };
 
-    const PRESET_LOCATIONS = {
+    const QUICK_SEARCH_MAP = {
         "용마": {
-            display_name: "김포 용마창고",
-            full_address: "경기도 김포시 고촌읍 아라육로 58번길 35-28",
-            latitude: 37.6086,
-            longitude: 126.7628,
-            default_mgr: "김기훈"
+            place: "김포 용마창고",
+            addr: "경기도 김포시 고촌읍 아라육로 58번길 35-28",
+            lat: 37.6086,
+            lng: 126.7628,
+            mgr: "김기훈"
         }
     };
 
     /**
-     * 2. 상태 관리 객체
+     * 2. 장소/지도 상태 관리
      */
-    const kakaoSearchProvider = new kakao.maps.services.Places();
+    const kakaoSearchService = new kakao.maps.services.Places();
     
-    let pickupState = { 
-        place_name: "", 
-        address: "", 
-        lat: null, 
-        lng: null, 
-        mapObj: null, 
-        markerObj: null 
-    };
-    
-    let dropState = { 
-        place_name: "", 
-        address: "", 
-        lat: null, 
-        lng: null, 
-        mapObj: null, 
-        markerObj: null 
-    };
+    let pState = { name: "", addr: "", lat: null, lng: null, map: null, marker: null };
+    let dState = { name: "", addr: "", lat: null, lng: null, map: null, marker: null };
 
     /**
-     * 3. 검색 이벤트 바인딩 (초기화)
+     * 3. 검색 기능 초기화
      */
-    function setupSearchWorkflow(prefix, stateObj) {
-        const inputEl = document.getElementById(prefix + "_search_input");
-        const dropdownEl = document.getElementById(prefix + "_search_dropdown");
+    function initSearchEngine(prefix, stateObj) {
+        const input = document.getElementById(prefix + "_search");
+        const dropdown = document.getElementById(prefix + "_dropdown");
 
-        inputEl.addEventListener("input", function() {
-            const keyword = this.value.trim();
+        input.addEventListener("input", function() {
+            const query = this.value.trim();
             
-            if (!keyword) {
-                dropdownEl.classList.remove("visible");
+            if (!query) {
+                dropdown.classList.remove("open");
                 return;
             }
 
-            // [A] 프리셋(용마 등) 우선 매칭
-            if (PRESET_LOCATIONS[keyword]) {
-                const preset = PRESET_LOCATIONS[keyword];
-                processSelection(prefix, preset.display_name, preset.full_address, preset.latitude, preset.longitude, stateObj);
+            // [A] 단축어 검사 (용마 등)
+            if (QUICK_SEARCH_MAP[query]) {
+                const data = QUICK_SEARCH_MAP[query];
+                confirmPlaceSelection(prefix, data.place, data.addr, data.lat, data.lng, stateObj);
                 
-                if (preset.default_mgr) {
-                    document.getElementById(prefix + "_manager_name").value = preset.default_mgr;
-                    refreshPhoneHint(prefix);
+                if (data.mgr) {
+                    document.getElementById(prefix + "_mgr").value = data.mgr;
+                    updateHint(prefix);
                 }
-                
-                dropdownEl.classList.remove("visible");
+                dropdown.classList.remove("open");
                 return;
             }
 
-            // [B] 카카오 API 검색 요청
-            kakaoSearchProvider.keywordSearch(keyword, (data, status) => {
+            // [B] 카카오 API 검색
+            kakaoSearchService.keywordSearch(query, (result, status) => {
                 if (status === kakao.maps.services.Status.OK) {
-                    renderDropdownList(prefix, data, stateObj);
+                    renderDropdownItems(prefix, result, stateObj);
                 } else {
-                    dropdownEl.classList.remove("visible");
+                    dropdown.classList.remove("open");
                 }
             });
         });
     }
 
     /**
-     * 4. 검색 결과 드롭다운 렌더링
+     * 4. 드롭다운 목록 렌더링
      */
-    function renderDropdownList(prefix, items, stateObj) {
-        const dropdown = document.getElementById(prefix + "_search_dropdown");
+    function renderDropdownItems(prefix, items, stateObj) {
+        const dropdown = document.getElementById(prefix + "_dropdown");
         dropdown.innerHTML = "";
 
-        // 최대 10개까지만 노출
         items.slice(0, 10).forEach(item => {
-            // 도로명 주소(road_address_name)를 우선 순위로 채택
-            const targetAddress = item.road_address_name || item.address_name;
+            // 주소 우선순위: 도로명 주소(road_address_name) -> 지번 주소(address_name)
+            const resolvedAddr = item.road_address_name || item.address_name;
             
             const div = document.createElement("div");
-            div.className = "dropdown-row";
+            div.className = "result-row";
             div.innerHTML = `
-                <div class="row-place-name">${item.place_name}</div>
-                <div class="row-address-name">${targetAddress}</div>
+                <div class="res-title">${item.place_name}</div>
+                <div class="res-addr">${resolvedAddr}</div>
             `;
             
             div.onclick = () => {
-                processSelection(prefix, item.place_name, targetAddress, item.y, item.x, stateObj);
-                dropdown.classList.remove("visible");
+                confirmPlaceSelection(prefix, item.place_name, resolvedAddr, item.y, item.x, stateObj);
+                dropdown.classList.remove("open");
             };
             
             dropdown.appendChild(div);
         });
         
-        dropdown.classList.add("visible");
+        dropdown.classList.add("open");
     }
 
     /**
-     * 5. 선택된 장소 데이터 적용 및 지도 활성화
+     * 5. 장소 확정 및 지도 표출
      */
-    function processSelection(prefix, name, addr, lat, lng, stateObj) {
-        // 입력창 및 데이터 바인딩
-        document.getElementById(prefix + "_search_input").value = name;
-        document.getElementById(prefix + "_address_fixed").value = addr;
+    function confirmPlaceSelection(prefix, name, addr, lat, lng, stateObj) {
+        document.getElementById(prefix + "_search").value = name;
+        document.getElementById(prefix + "_addr_base").value = addr;
         
-        stateObj.place_name = name;
-        stateObj.address = addr;
+        stateObj.name = name;
+        stateObj.addr = addr;
         stateObj.lat = lat;
         stateObj.lng = lng;
 
-        // 지도 컨테이너 노출
-        const mapWrap = document.getElementById(prefix + "_map_container");
-        mapWrap.classList.add("active");
+        const wrapper = document.getElementById(prefix + "_map_wrap");
+        wrapper.classList.add("show");
 
         const targetPos = new kakao.maps.LatLng(lat, lng);
         
-        // 지도 인스턴스 생성 또는 위치 업데이트
-        if (!stateObj.mapObj) {
-            const mapDom = document.getElementById(prefix + "_kakao_map");
-            stateObj.mapObj = new kakao.maps.Map(mapDom, { center: targetPos, level: 3 });
-            stateObj.markerObj = new kakao.maps.Marker({ position: targetPos, map: stateObj.mapObj });
+        if (!stateObj.map) {
+            const mapDom = document.getElementById(prefix + "_map_dom");
+            stateObj.map = new kakao.maps.Map(mapDom, { center: targetPos, level: 3 });
+            stateObj.marker = new kakao.maps.Marker({ position: targetPos, map: stateObj.map });
         } else {
-            stateObj.mapObj.setCenter(targetPos);
-            stateObj.markerObj.setPosition(targetPos);
-            // 렌더링 타이밍 이슈 방지
-            setTimeout(() => stateObj.mapObj.relayout(), 200);
+            stateObj.map.setCenter(targetPos);
+            stateObj.marker.setPosition(targetPos);
+            setTimeout(() => stateObj.map.relayout(), 200);
         }
     }
 
     /**
-     * 6. 주소에서 '구/시' 명칭 추출 로직 (지역 기반 명칭 생성용)
+     * 6. 지역명 추출기 (주소에서 '강남', '서초' 등만 추출)
      */
-    function extractRegionLabel(fullAddr) {
-        if (!fullAddr) return "";
-        
-        const addrTokens = fullAddr.split(" ");
-        
-        // 주소 체계 상 보통 2번째 단어가 '서초구', '강남구', '성남시' 등임
-        if (addrTokens.length > 1) {
-            // '구', '시', '군' 글자를 제거하여 깔끔하게 '서초', '강남'만 남김
-            const rawRegion = addrTokens[1];
-            return rawRegion.replace(/구$|시$|군$/, "");
+    function getShortRegion(fullAddress) {
+        if (!fullAddress) return "";
+        const parts = fullAddress.split(" ");
+        if (parts.length > 1) {
+            // 두 번째 토큰(구/시 명칭)에서 '구', '시', '군'을 제거
+            return parts[1].replace(/구$|시$|군$/, "");
         }
-        
         return "";
     }
 
     /**
-     * 7. 담당자 전화번호 힌트 출력
+     * 7. 담당자 연락처 힌트 동기화
      */
-    function refreshPhoneHint(prefix) {
-        const inputName = document.getElementById(prefix + "_manager_name").value.trim();
-        const hintArea = document.getElementById(prefix + "_manager_phone_hint");
+    function updateHint(prefix) {
+        const val = document.getElementById(prefix + "_mgr").value.trim();
+        const hintEl = document.getElementById(prefix + "_hint");
         
-        if (MASTER_CONTACTS[inputName]) {
-            hintArea.innerHTML = `<span>📞</span> ${MASTER_CONTACTS[inputName]}`;
+        if (CONTACT_MAP[val]) {
+            hintEl.innerHTML = `<span>☎</span> ${CONTACT_MAP[val]}`;
         } else {
-            hintArea.innerHTML = "";
+            hintEl.innerHTML = "";
         }
     }
 
     /**
-     * 8. [핵심] 메시지 빌드 프로세스
+     * 8. [CORE] 메시지 생성 로직
      */
-    function handleGenerateAction() {
-        // [입력값 취합]
-        const pickupTime = document.getElementById("p_schedule_time").value.trim() || "(시간협의)";
-        const dropTime = document.getElementById("d_schedule_time").value.trim() || "(시간협의)";
-        const pickupMgr = document.getElementById("p_manager_name").value.trim() || "(미입력)";
-        const dropMgr = document.getElementById("d_manager_name").value.trim() || "(미입력)";
-        const equipName = document.getElementById("target_equipment").value.trim() || "(미입력)";
-        const remarkMemo = document.getElementById("order_memo").value.trim();
+    function executeMessageBuild() {
+        // 기본 입력 데이터 가져오기
+        const pDetail = document.getElementById("p_addr_detail").value.trim();
+        const dDetail = document.getElementById("d_addr_detail").value.trim();
+        
+        const pTime = document.getElementById("p_time").value.trim() || "(시간 협의)";
+        const dTime = document.getElementById("d_time").value.trim() || "(시간 협의)";
+        
+        const pMgr = document.getElementById("p_mgr").value.trim() || "(미입력)";
+        const dMgr = document.getElementById("d_mgr").value.trim() || "(미입력)";
+        
+        const equipment = document.getElementById("equip_name").value.trim() || "(미입력)";
+        const memo = document.getElementById("main_memo").value.trim();
 
-        // [지역 기반 명칭 조합] 예: 서초 세예의원
-        const pRegion = extractRegionLabel(pickupState.address);
-        const pickupFormattedName = pRegion ? `${pRegion} ${pickupState.place_name}` : pickupState.place_name;
+        // [지역 기반 장소명 생성]
+        const pRegion = getShortRegion(pState.addr);
+        const pDisplayTitle = pRegion ? `${pRegion} ${pState.name}` : pState.name;
 
-        const dRegion = extractRegionLabel(dropState.address);
-        const dropFormattedName = dRegion ? `${dRegion} ${dropState.place_name}` : dropState.place_name;
+        const dRegion = getShortRegion(dState.addr);
+        const dDisplayTitle = dRegion ? `${dRegion} ${dState.name}` : dState.name;
 
-        // [메시지 조립]
-        let finalMessage = `[상차]\n`;
-        finalMessage += `상차 : ${pickupFormattedName || "(장소 미선택)"}\n`;
-        finalMessage += `일시 : ${pickupTime}\n`;
-        finalMessage += `장비명 : ${equipName}\n`;
-        finalMessage += `주소 : ${pickupState.address || "(주소 미선택)"}\n`;
-        finalMessage += `담당자 : ${pickupMgr}`;
-        if (MASTER_CONTACTS[pickupMgr]) finalMessage += ` (${MASTER_CONTACTS[pickupMgr]})`;
+        // [주소 풀셋 조립] 도로명 + 상세주소
+        const pFullAddress = pDetail ? `${pState.addr} (${pDetail})` : pState.addr;
+        const dFullAddress = dDetail ? `${dState.addr} (${dDetail})` : dState.addr;
 
-        finalMessage += `\n\n[하차]\n`;
-        finalMessage += `하차 : ${dropFormattedName || "(장소 미선택)"}\n`;
-        finalMessage += `일시 : ${dropTime}\n`;
-        finalMessage += `장비명 : ${equipName}\n`;
-        finalMessage += `주소 : ${dropState.address || "(주소 미선택)"}\n`;
-        finalMessage += `담당자 : ${dropMgr}`;
-        if (MASTER_CONTACTS[dropMgr]) finalMessage += ` (${MASTER_CONTACTS[dropMgr]})`;
+        // [메시지 템플릿 조립]
+        let msg = `[상차]\n`;
+        msg += `상차 : ${pDisplayTitle || "(미선택)"}\n`;
+        msg += `일시 : ${pTime}\n`;
+        msg += `장비명 : ${equipment}\n`;
+        msg += `주소 : ${pFullAddress || "(미선택)"}\n`;
+        msg += `담당자 : ${pMgr}`;
+        if (CONTACT_MAP[pMgr]) msg += ` (${CONTACT_MAP[pMgr]})`;
 
-        if (remarkMemo) {
-            finalMessage += `\n\n[비고]\n${remarkMemo}`;
+        msg += `\n\n[하차]\n`;
+        msg += `하차 : ${dDisplayTitle || "(미선택)"}\n`;
+        msg += `일시 : ${dTime}\n`;
+        msg += `장비명 : ${equipment}\n`;
+        msg += `주소 : ${dFullAddress || "(미선택)"}\n`;
+        msg += `담당자 : ${dMgr}`;
+        if (CONTACT_MAP[dMgr]) msg += ` (${CONTACT_MAP[dMgr]})`;
+
+        if (memo) {
+            msg += `\n\n[비고]\n${memo}`;
         }
 
-        // [출력]
-        document.getElementById("final_output_area").value = finalMessage;
+        // 텍스트 영역에 출력
+        document.getElementById("final_message_box").value = msg;
     }
 
     /**
-     * 9. 복사 기능 실행
+     * 9. 클립보드 복사 로직
      */
-    function executeCopy() {
-        const textArea = document.getElementById("final_output_area");
-        if (!textArea.value) return;
+    function performCopy() {
+        const area = document.getElementById("final_message_box");
+        if (!area.value) return;
 
-        textArea.select();
+        area.select();
         document.execCommand('copy');
         
-        const copyBtn = document.getElementById("final_copy_btn");
-        const originalContent = copyBtn.innerHTML;
+        const btn = document.getElementById("copy_trigger");
+        const oldText = btn.innerHTML;
         
-        copyBtn.innerHTML = "<span>✅</span> 복사 완료!";
-        copyBtn.classList.add("success");
+        btn.innerHTML = "<span>✅</span> 복사 완료!";
+        btn.classList.add("success");
         
         setTimeout(() => {
-            copyBtn.innerHTML = originalContent;
-            copyBtn.classList.remove("success");
+            btn.innerHTML = oldText;
+            btn.classList.remove("success");
         }, 2000);
     }
 
     /**
-     * 10. 초기 로딩 완료 시 실행
+     * 10. 페이지 로드 초기화
      */
     document.addEventListener("DOMContentLoaded", () => {
-        // 검색 워크플로우 초기화
-        setupSearchWorkflow("p", pickupState);
-        setupSearchWorkflow("d", dropState);
+        // 상/하차지 독립 검색 엔진 초기화
+        initSearchEngine("p", pState);
+        initSearchEngine("d", dState);
         
-        // 담당자 이름 입력 시 전화번호 힌트 자동 연동
-        document.getElementById("p_manager_name").addEventListener("input", () => refreshPhoneHint("p"));
-        document.getElementById("d_manager_name").addEventListener("input", () => refreshPhoneHint("d"));
+        // 담당자 연락처 실시간 매칭
+        document.getElementById("p_mgr").addEventListener("input", () => updateHint("p"));
+        document.getElementById("d_mgr").addEventListener("input", () => updateHint("d"));
         
-        // 드롭다운 외 영역 클릭 시 닫기
+        // 드롭다운 닫기 이벤트 (외부 클릭 시)
         document.addEventListener("click", (e) => {
-            if (!e.target.closest(".input-group")) {
-                document.querySelectorAll(".search-dropdown").forEach(d => d.classList.remove("visible"));
+            if (!e.target.closest(".form-row")) {
+                document.querySelectorAll(".dropdown-results").forEach(d => d.classList.remove("open"));
             }
         });
     });
