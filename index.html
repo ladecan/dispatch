@@ -2,179 +2,540 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>배차 생성기</title>
-
-<script src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=YOUR_KAKAO_KEY&libraries=services"></script>
+<script src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=9eb81b2d9508d3c7222269657b22d9a6&libraries=services"></script>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700&display=swap" rel="stylesheet">
 
 <style>
-body { font-family: Arial; max-width: 600px; margin: 40px auto; }
-input, button { width: 100%; padding: 10px; margin-bottom: 10px; }
-textarea { width: 100%; height: 300px; margin-top: 10px; }
-.result-box { border:1px solid #ccc; max-height:150px; overflow:auto; margin-bottom:10px;}
-.result-item { padding:8px; cursor:pointer; }
-.result-item:hover { background:#f0f0f0; }
+  :root {
+    --primary: #1a1a2e;
+    --accent: #e94560;
+    --accent2: #0f3460;
+    --surface: #ffffff;
+    --surface2: #f7f8fc;
+    --border: #e2e5ef;
+    --text: #1a1a2e;
+    --muted: #7b8196;
+    --success: #2ecc71;
+    --shadow: 0 2px 16px rgba(26,26,46,0.08);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Noto Sans KR', sans-serif;
+    background: #eef1f8;
+    min-height: 100vh;
+    padding: 32px 16px;
+    color: var(--text);
+  }
+
+  .container {
+    max-width: 780px;
+    margin: 0 auto;
+  }
+
+  .header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 28px;
+  }
+
+  .header-icon {
+    width: 44px;
+    height: 44px;
+    background: var(--primary);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+  }
+
+  .header h1 {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--primary);
+    letter-spacing: -0.5px;
+  }
+
+  .header p {
+    font-size: 13px;
+    color: var(--muted);
+    margin-top: 2px;
+  }
+
+  .panels {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 16px;
+  }
+
+  @media (max-width: 600px) {
+    .panels { grid-template-columns: 1fr; }
+  }
+
+  .card {
+    background: var(--surface);
+    border-radius: 16px;
+    padding: 20px;
+    box-shadow: var(--shadow);
+    border: 1px solid var(--border);
+  }
+
+  .card-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 26px;
+    height: 26px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+
+  .badge-up   { background: #fff3cd; color: #b45309; }
+  .badge-down { background: #d1fae5; color: #065f46; }
+
+  .card-header span.label {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--primary);
+  }
+
+  .field {
+    margin-bottom: 12px;
+    position: relative;
+  }
+
+  .field label {
+    display: block;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    margin-bottom: 5px;
+  }
+
+  .field input, .field select {
+    width: 100%;
+    padding: 9px 12px;
+    border: 1.5px solid var(--border);
+    border-radius: 8px;
+    font-size: 13px;
+    font-family: inherit;
+    color: var(--text);
+    background: var(--surface2);
+    transition: border-color 0.2s, background 0.2s;
+    outline: none;
+  }
+
+  .field input:focus {
+    border-color: var(--accent);
+    background: #fff;
+  }
+
+  .field input.selected {
+    border-color: var(--success);
+    background: #f0fdf4;
+  }
+
+  .dropdown {
+    position: absolute;
+    top: calc(100% + 2px);
+    left: 0; right: 0;
+    background: #fff;
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
+    box-shadow: 0 8px 24px rgba(26,26,46,0.12);
+    z-index: 100;
+    max-height: 200px;
+    overflow-y: auto;
+    display: none;
+  }
+
+  .dropdown.open { display: block; }
+
+  .dropdown-item {
+    padding: 10px 14px;
+    font-size: 13px;
+    cursor: pointer;
+    border-bottom: 1px solid #f0f0f0;
+    transition: background 0.15s;
+  }
+
+  .dropdown-item:hover { background: #f5f7ff; }
+
+  .dropdown-item .place-name {
+    font-weight: 600;
+    color: var(--primary);
+  }
+
+  .dropdown-item .place-addr {
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 2px;
+  }
+
+  .map-wrap {
+    margin-top: 12px;
+    border-radius: 10px;
+    overflow: hidden;
+    border: 1.5px solid var(--border);
+    display: none;
+  }
+
+  .map-wrap.show { display: block; }
+
+  .extra-card {
+    background: var(--surface);
+    border-radius: 16px;
+    padding: 20px;
+    box-shadow: var(--shadow);
+    border: 1px solid var(--border);
+    margin-bottom: 16px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+
+  @media (max-width: 600px) {
+    .extra-card { grid-template-columns: 1fr; }
+  }
+
+  .result-card {
+    background: var(--primary);
+    border-radius: 16px;
+    padding: 20px;
+    box-shadow: var(--shadow);
+    margin-bottom: 16px;
+  }
+
+  .result-card h3 {
+    font-size: 13px;
+    font-weight: 600;
+    color: rgba(255,255,255,0.5);
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    margin-bottom: 12px;
+  }
+
+  .result-card textarea {
+    width: 100%;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 10px;
+    padding: 14px;
+    font-size: 13px;
+    font-family: 'Noto Sans KR', monospace;
+    color: #e8eaf6;
+    line-height: 1.8;
+    resize: none;
+    outline: none;
+    min-height: 240px;
+  }
+
+  .btn {
+    padding: 12px 20px;
+    border: none;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 700;
+    font-family: inherit;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+  }
+
+  .btn-primary {
+    background: var(--accent);
+    color: #fff;
+  }
+
+  .btn-primary:hover { background: #d63651; transform: translateY(-1px); }
+
+  .btn-copy {
+    background: rgba(255,255,255,0.1);
+    color: #fff;
+    border: 1px solid rgba(255,255,255,0.2);
+    font-size: 13px;
+  }
+
+  .btn-copy.copied {
+    background: var(--success);
+    border-color: var(--success);
+  }
+
+  .contact-hint {
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 4px;
+    padding-left: 2px;
+    height: 14px;
+  }
 </style>
 </head>
 
 <body>
+<div class="container">
 
-<h2>🚚 배차 생성기</h2>
+  <div class="header">
+    <div class="header-icon">🚛</div>
+    <div>
+      <h1>배차 생성기</h1>
+      <p>상하차 정보를 입력하고 배차 메시지를 자동 생성합니다</p>
+    </div>
+  </div>
 
-<!-- 상차 -->
-<input id="pickup" placeholder="상차지 검색">
-<div id="pickupResults" class="result-box"></div>
-<input id="pickupTime" placeholder="상차 시간">
-<input id="pickupManager" placeholder="상차 담당자">
+  <div class="panels">
+    <div class="card">
+      <div class="card-header">
+        <div class="badge badge-up">↑</div>
+        <span class="label">상차지</span>
+      </div>
+      <div class="field">
+        <label>장소 검색</label>
+        <input id="pickup" type="text" placeholder="지명, 주소, 거래처명 검색">
+        <div id="pickupDropdown" class="dropdown"></div>
+      </div>
+      <div class="field">
+        <label>선택된 주소</label>
+        <input id="pickupAddress" type="text" placeholder="자동 입력" readonly class="selected" style="color:#065f46;">
+      </div>
+      <div class="map-wrap" id="pickupMapWrap">
+        <div id="pickupMap" style="width:100%;height:160px;"></div>
+      </div>
+      <div class="field" style="margin-top:12px">
+        <label>상차 일시</label>
+        <input id="pickupTime" type="text" placeholder="예) 05/20(월) 09:00">
+      </div>
+      <div class="field">
+        <label>담당자</label>
+        <input id="pickupManager" type="text" placeholder="이름 입력" list="managerList">
+        <div class="contact-hint" id="pickupContactHint"></div>
+      </div>
+    </div>
 
-<!-- 하차 -->
-<input id="drop" placeholder="하차지 검색">
-<div id="dropResults" class="result-box"></div>
-<input id="dropTime" placeholder="하차 시간">
-<input id="dropManager" placeholder="하차 담당자">
+    <div class="card">
+      <div class="card-header">
+        <div class="badge badge-down">↓</div>
+        <span class="label">하차지</span>
+      </div>
+      <div class="field">
+        <label>장소 검색</label>
+        <input id="drop" type="text" placeholder="지명, 주소, 거래처명 검색">
+        <div id="dropDropdown" class="dropdown"></div>
+      </div>
+      <div class="field">
+        <label>선택된 주소</label>
+        <input id="dropAddress" type="text" placeholder="자동 입력" readonly class="selected" style="color:#065f46;">
+      </div>
+      <div class="map-wrap" id="dropMapWrap">
+        <div id="dropMap" style="width:100%;height:160px;"></div>
+      </div>
+      <div class="field" style="margin-top:12px">
+        <label>하차 일시</label>
+        <input id="dropTime" type="text" placeholder="예) 05/20(월) 13:00">
+      </div>
+      <div class="field">
+        <label>담당자</label>
+        <input id="dropManager" type="text" placeholder="이름 입력" list="managerList">
+        <div class="contact-hint" id="dropContactHint"></div>
+      </div>
+    </div>
+  </div>
 
-<input id="equipment" placeholder="장비명">
+  <div class="extra-card">
+    <div class="field" style="margin-bottom:0">
+      <label>장비명</label>
+      <input id="equipment" type="text" placeholder="예) Nordlys, PicoWay 등">
+    </div>
+    <div class="field" style="margin-bottom:0">
+      <label>비고 / 메모</label>
+      <input id="memo" type="text" placeholder="특이사항 입력">
+    </div>
+  </div>
 
-<button onclick="generate()">생성</button>
+  <div style="margin-bottom:16px;">
+    <button class="btn btn-primary" style="width:100%; padding:14px;" onclick="generate()">
+      ✦ 배차 메시지 생성
+    </button>
+  </div>
 
-<textarea id="result"></textarea>
-<button onclick="copyText()">복사</button>
+  <div class="result-card">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+      <h3>생성된 메시지</h3>
+      <button class="btn btn-copy" id="copyBtn" onclick="copyText()">📋 복사</button>
+    </div>
+    <textarea id="result" readonly placeholder="정보 입력 후 생성 버튼을 누르세요."></textarea>
+  </div>
+</div>
+
+<datalist id="managerList">
+  <option value="김기훈">
+  <option value="오상걸">
+  <option value="박윤아">
+  <option value="김성훈">
+  <option value="이가람">
+</datalist>
 
 <script>
+// ─── 데이터 설정 ───────────────────────────────────────────
 const contactMap = {
   "김기훈": "010-3899-1656",
+  "오상걸": "010-9969-0149",
   "박윤아": "010-3020-0568",
   "김성훈": "010-5419-6263",
   "이가람": "010-9294-6541"
 };
 
 const locationMap = {
-  "용마": {
-    name: "김포 용마창고",
-    address: "경기도 김포시 고촌읍 아라육로 58번길 35-28"
+  "용마": { 
+    name: "김포 용마창고", 
+    address: "경기도 김포시 고촌읍 아라육로 58번길 35-28", 
+    lat: 37.6086, 
+    lng: 126.7628,
+    manager: "김기훈"
   },
-  "서초": {
-    name: "서초 사무실",
-    address: "서울 서초구 강남대로 327 3층"
+  "서초": { 
+    name: "서초 사무실",   
+    address: "서울 서초구 강남대로 327 3층",               
+    lat: 37.496, 
+    lng: 127.028 
   }
 };
 
-const geocoder = new kakao.maps.services.Places();
+const ps = new kakao.maps.services.Places();
+let pickupData = { name: "", address: "", lat: null, lng: null };
+let dropData   = { name: "", address: "", lat: null, lng: null };
 
-let pickupAddress = "";
-let dropAddress = "";
+function setupSearch(inputId, dropdownId, mapWrapId, mapDivId, store, addressInputId, contactHintId, managerInputId) {
+  const input = document.getElementById(inputId);
+  const dropdown = document.getElementById(dropdownId);
+  const addrInput = document.getElementById(addressInputId);
+  const managerInput = document.getElementById(managerInputId);
 
-// 검색 함수
-function searchPlaces(keyword, target) {
-  if (!keyword) return;
+  input.addEventListener("input", () => {
+    const val = input.value.trim();
+    if (!val) { dropdown.classList.remove("open"); return; }
 
-  geocoder.keywordSearch(keyword, function(result, status) {
-    if (status === kakao.maps.services.Status.OK) {
-      displayResults(result, target);
+    for (const key in locationMap) {
+      if (val === key || (val.length >= 2 && key.includes(val))) {
+        const loc = locationMap[key];
+        selectLocation(loc.name, loc.address, loc.lat, loc.lng, input, addrInput, dropdown, mapWrapId, mapDivId, store);
+        if (loc.manager) {
+          managerInput.value = loc.manager;
+          updateContactHint(managerInputId, contactHintId);
+        }
+        return;
+      }
     }
+
+    ps.keywordSearch(val, (result, status) => {
+      if (status === kakao.maps.services.Status.OK) {
+        renderDropdown(result, dropdown, input, addrInput, mapWrapId, mapDivId, store);
+      } else {
+        dropdown.classList.remove("open");
+      }
+    });
   });
 }
 
-// 결과 표시
-function displayResults(places, target) {
-  const box = document.getElementById(target + "Results");
-  box.innerHTML = "";
-
-  places.forEach(place => {
-    const div = document.createElement("div");
-    div.className = "result-item";
-    div.innerText = place.place_name + " / " + place.address_name;
-
-    div.onclick = () => {
-      document.getElementById(target).value = place.place_name;
-      if (target === "pickup") pickupAddress = place.address_name;
-      else dropAddress = place.address_name;
-      box.innerHTML = "";
-    };
-
-    box.appendChild(div);
+function renderDropdown(places, dropdown, input, addrInput, mapWrapId, mapDivId, store) {
+  dropdown.innerHTML = "";
+  places.slice(0, 6).forEach(p => {
+    const item = document.createElement("div");
+    item.className = "dropdown-item";
+    item.innerHTML = `<div class="place-name">${p.place_name}</div><div class="place-addr">${p.address_name}</div>`;
+    item.addEventListener("click", () => {
+      selectLocation(p.place_name, p.address_name, parseFloat(p.y), parseFloat(p.x), input, addrInput, dropdown, mapWrapId, mapDivId, store);
+    });
+    dropdown.appendChild(item);
   });
+  dropdown.classList.add("open");
 }
 
-// 입력 시 자동 검색
-document.getElementById("pickup").addEventListener("input", (e) => {
-  const val = e.target.value;
-  if (val.includes("용마")) {
-    pickupAddress = locationMap["용마"].address;
-    return;
-  }
-  if (val.includes("서초")) {
-    pickupAddress = locationMap["서초"].address;
-    return;
-  }
-  searchPlaces(val, "pickup");
-});
+function selectLocation(name, address, lat, lng, input, addrInput, dropdown, mapWrapId, mapDivId, store) {
+  input.value = name;
+  addrInput.value = address;
+  dropdown.classList.remove("open");
+  store.name = name; store.address = address; store.lat = lat; store.lng = lng;
+  showMap(mapWrapId, mapDivId, lat, lng, name, store);
+}
 
-document.getElementById("drop").addEventListener("input", (e) => {
-  const val = e.target.value;
-  if (val.includes("용마")) {
-    dropAddress = locationMap["용마"].address;
-    return;
+function showMap(wrapId, divId, lat, lng, title, store) {
+  document.getElementById(wrapId).classList.add("show");
+  const coords = new kakao.maps.LatLng(lat, lng);
+  if (!store._map) {
+    store._map = new kakao.maps.Map(document.getElementById(divId), { center: coords, level: 3 });
+    store._marker = new kakao.maps.Marker({ map: store._map, position: coords });
+  } else {
+    store._map.setCenter(coords);
+    store._marker.setPosition(coords);
   }
-  if (val.includes("서초")) {
-    dropAddress = locationMap["서초"].address;
-    return;
-  }
-  searchPlaces(val, "drop");
-});
+}
 
-function resolveLocation(input, address) {
-  if (input.includes("용마")) return locationMap["용마"];
-  if (input.includes("서초")) return locationMap["서초"];
-
-  return {
-    name: input,
-    address: address
-  };
+function updateContactHint(mgrId, hintId) {
+  const name = document.getElementById(mgrId).value.trim();
+  const phone = contactMap[name] || "";
+  document.getElementById(hintId).textContent = phone ? `📞 ${phone}` : "";
 }
 
 function generate() {
-  const pickup = document.getElementById("pickup").value;
-  const pickupTime = document.getElementById("pickupTime").value;
-  const pickupManager = document.getElementById("pickupManager").value;
+  const pTime = document.getElementById("pickupTime").value.trim() || "(조율가능)";
+  const pMgr = document.getElementById("pickupManager").value.trim() || "(미입력)";
+  const dTime = document.getElementById("dropTime").value.trim() || "(조율가능)";
+  const dMgr = document.getElementById("dropManager").value.trim() || "(미입력)";
+  const equip = document.getElementById("equipment").value.trim() || "(미입력)";
+  const memo = document.getElementById("memo").value.trim();
 
-  const drop = document.getElementById("drop").value;
-  const dropTime = document.getElementById("dropTime").value;
-  const dropManager = document.getElementById("dropManager").value;
+  let text = `[상차]\n상차 : ${pickupData.name || "(미입력)"}\n일시 : ${pTime}\n장비명 : ${equip}\n주소 : ${pickupData.address || "(미입력)"}\n담당자 : ${pMgr}`;
+  if(contactMap[pMgr]) text += `\n연락처 : ${contactMap[pMgr]}`;
 
-  const equipment = document.getElementById("equipment").value;
+  text += `\n\n[하차]\n하차 : ${dropData.name || "(미입력)"}\n일시 : ${dTime}\n장비명 : ${equip}\n주소 : ${dropData.address || "(미입력)"}\n담당자 : ${dMgr}`;
+  if(contactMap[dMgr]) text += `\n연락처 : ${contactMap[dMgr]}`;
 
-  const pick = resolveLocation(pickup, pickupAddress);
-  const dropLoc = resolveLocation(drop, dropAddress);
-
-  const pickPhone = contactMap[pickupManager] || "";
-  const dropPhone = contactMap[dropManager] || "";
-
-  const text = `[상차]
-상차 : ${pick.name}
-일시 : ${pickupTime || "(조율가능)"}
-장비명 : ${equipment}
-주소 : ${pick.address}
-담당자 : ${pickupManager}
-연락처 : ${pickPhone}
-
-[하차]
-하차 : ${dropLoc.name}
-일시 : ${dropTime || "(조율가능)"}
-장비명 : ${equipment}
-주소 : ${dropLoc.address}
-담당자 : ${dropManager}
-연락처 : ${dropPhone}`;
-
+  if (memo) text += `\n\n[비고]\n${memo}`;
   document.getElementById("result").value = text;
 }
 
 function copyText() {
-  const textarea = document.getElementById("result");
-  textarea.select();
-  document.execCommand("copy");
-  alert("복사 완료");
+  const ta = document.getElementById("result");
+  navigator.clipboard.writeText(ta.value).then(() => {
+    const btn = document.getElementById("copyBtn");
+    btn.textContent = "✓ 복사됨"; btn.classList.add("copied");
+    setTimeout(() => { btn.textContent = "📋 복사"; btn.classList.remove("copied"); }, 2000);
+  });
 }
-</script>
 
+setupSearch("pickup", "pickupDropdown", "pickupMapWrap", "pickupMap", pickupData, "pickupAddress", "pickupContactHint", "pickupManager");
+setupSearch("drop", "dropDropdown", "dropMapWrap", "dropMap", dropData, "dropAddress", "dropContactHint", "dropManager");
+
+document.getElementById("pickupManager").addEventListener("input", () => updateContactHint("pickupManager", "pickupContactHint"));
+document.getElementById("dropManager").addEventListener("input", () => updateContactHint("dropManager", "dropContactHint"));
+
+document.addEventListener("click", (e) => {
+  if (!e.target.closest('.field')) {
+    document.querySelectorAll('.dropdown').forEach(d => d.classList.remove('open'));
+  }
+});
+</script>
 </body>
 </html>
