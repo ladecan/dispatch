@@ -727,4 +727,21 @@
         initializeSearchEngine("p", pState);
         initializeSearchEngine("d", dState);
         
-        // 담당자 연락
+        // 담당자 연락처 힌트 동기화 리스너
+        document.getElementById("p_manager_name").addEventListener("input", () => updateContactHint("p"));
+        document.getElementById("d_manager_name").addEventListener("input", () => updateContactHint("d"));
+        
+        // 검색 드롭다운 외부 영역 클릭 시 닫기 처리
+        document.addEventListener("click", (evt) => {
+            if (!evt.target.closest(".form-unit")) {
+                document.querySelectorAll(".search-engine-results").forEach(el => el.classList.remove("is-visible"));
+            }
+        });
+
+        console.log("Dispatch Pro System Initialized. Address-Building-Floor integration logic is active.");
+    });
+
+</script>
+
+</body>
+</html>
