@@ -66,9 +66,83 @@
            [3. LAYOUT COMPONENTS]
            ==================================================
         */
-        .wrapper {
-            max-width: 1100px;
+        .page-layout {
+            max-width: 1340px;
             margin: 0 auto;
+            display: flex;
+            gap: 28px;
+            align-items: flex-start;
+        }
+
+        .preset-sidebar {
+            width: 210px;
+            flex-shrink: 0;
+            background: var(--white);
+            border-radius: 20px;
+            border: 1px solid var(--border-soft);
+            box-shadow: var(--shadow-sm);
+            padding: 20px;
+            position: sticky;
+            top: 32px;
+        }
+
+        .preset-sidebar h3 {
+            font-size: 11px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 1.2px;
+            color: var(--text-muted);
+            margin-bottom: 14px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--border-soft);
+        }
+
+        .preset-chip {
+            padding: 10px 12px;
+            border-radius: 10px;
+            margin-bottom: 8px;
+            border: 1px solid var(--border-soft);
+            background: #f8fafc;
+        }
+
+        .preset-chip-name {
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--navy-deep);
+        }
+
+        .preset-chip-keyword {
+            font-size: 10px;
+            color: var(--text-muted);
+            margin-top: 3px;
+            margin-bottom: 8px;
+        }
+
+        .preset-chip-btn-row {
+            display: flex;
+            gap: 5px;
+        }
+
+        .preset-btn {
+            flex: 1;
+            padding: 5px 0;
+            font-size: 10px;
+            font-weight: 700;
+            border: 1.5px solid var(--border-soft);
+            border-radius: 6px;
+            background: white;
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: all 0.15s;
+            font-family: inherit;
+        }
+
+        .preset-btn.pickup:hover { background: #fee2e2; color: #991b1b; border-color: #fca5a5; }
+        .preset-btn.drop:hover   { background: #dcfce7; color: #166534; border-color: #86efac; }
+
+        .wrapper {
+            flex: 1;
+            min-width: 0;
             animation: fadeIn 0.6s ease-out;
         }
 
@@ -375,6 +449,11 @@
 </head>
 <body>
 
+<div class="page-layout">
+<aside class="preset-sidebar">
+    <h3>📌 프리셋 장소</h3>
+    <div id="preset-list"></div>
+</aside>
 <div class="wrapper">
     <header class="header-section">
         <div class="brand-group">
@@ -479,7 +558,8 @@
         <textarea id="output_box" class="output-box" readonly></textarea>
     </div>
 
-</div> <datalist id="master_mgrs">
+</div></div>
+<datalist id="master_mgrs">
     <option value="김기훈"><option value="오상걸"><option value="박윤아"><option value="김성훈"><option value="이가람">
 </datalist>
 
@@ -506,22 +586,53 @@
             addr: "경기도 김포시 고촌읍 아라육로 58번길 35-28",
             lat: 37.6086,
             lng: 126.7628,
-            mgr: "김기훈"
+            mgr: "김기훈",
+            icon: "🏭"
         },
-        "서초": {
-            display: "서초 사무실",
+        "켄델라사무실": {
+            display: "켄델라 서초 사무실",
             addr: "서울 서초구 강남대로 327 3층",
             lat: 37.4965,
             lng: 127.0276,
-            mgr: ""
+            mgr: "",
+            icon: "🏢"
         }
     };
+
+    function renderPresetSidebar() {
+        const container = document.getElementById("preset-list");
+        if (!container) return;
+        container.innerHTML = "";
+        Object.entries(PRESET_LOCATIONS).forEach(([key, data]) => {
+            const chip = document.createElement("div");
+            chip.className = "preset-chip";
+            chip.innerHTML =
+                '<div class="preset-chip-name">' + (data.icon||"📍") + " " + data.display + "</div>" +
+                '<div class="preset-chip-keyword">키워드: ' + key + "</div>" +
+                '<div class="preset-chip-btn-row">' +
+                '<button class="preset-btn pickup" onclick="applyPreset('p','' + key + '')">↑ 상차</button>' +
+                '<button class="preset-btn drop" onclick="applyPreset('d','' + key + '')">↓ 하차</button>' +
+                "</div>";
+            container.appendChild(chip);
+        });
+    }
+
+    function applyPreset(prefix, key) {
+        const data = PRESET_LOCATIONS[key];
+        if (!data) return;
+        const stateStore = prefix === "p" ? pickupState : dropState;
+        executeSelection(prefix, data.display, data.addr, data.lat, data.lng, stateStore);
+        if (data.mgr) {
+            document.getElementById(prefix + "_mgr").value = data.mgr;
+            refreshPhoneHint(prefix);
+        }
+    }
 
     /**
      * @global State Management
      * 상차 및 하차 포인트의 상태 객체
      */
-    const kakaoSearchProvider = null; // load 후 초기화됨
+    const kakaoSearchProvider = null;
     
     let pickupState = { name: "", addr: "", lat: 0, lng: 0, map: null, marker: null };
     let dropState = { name: "", addr: "", lat: 0, lng: 0, map: null, marker: null };
@@ -542,10 +653,9 @@
                 return;
             }
 
-            // [Step 1] 프리셋 키워드 우선 체크 (부분 포함 매칭)
-            const matchedKey = Object.keys(PRESET_LOCATIONS).find(key => query.includes(key));
-            if (matchedKey) {
-                const data = PRESET_LOCATIONS[matchedKey];
+            // [Step 1] 프리셋 키워드 우선 체크 (정확 일치)
+            if (PRESET_LOCATIONS[query]) {
+                const data = PRESET_LOCATIONS[query];
                 executeSelection(prefix, data.display, data.addr, data.lat, data.lng, stateStore);
                 if (data.mgr) {
                     document.getElementById(prefix + "_mgr").value = data.mgr;
@@ -674,10 +784,12 @@
 
         // 스마트 명칭 조합 로직 (지역 + 장소명)
         const pRegion = parseRegionTag(pickupState.addr);
-        const pDisplay = pRegion ? `${pRegion} ${pickupState.name}` : pickupState.name;
+        const pDisplay = (pRegion && !pickupState.name.includes(pRegion))
+            ? `${pRegion} ${pickupState.name}` : pickupState.name;
 
         const dRegion = parseRegionTag(dropState.addr);
-        const dDisplay = dRegion ? `${dRegion} ${dropState.name}` : dropState.name;
+        const dDisplay = (dRegion && !dropState.name.includes(dRegion))
+            ? `${dRegion} ${dropState.name}` : dropState.name;
 
         // 템플릿 엔진 구동
         let outputMessage = `[상차 정보]\n`;
@@ -739,27 +851,24 @@
      * 페이지 로드 즉시 엔진 가동 및 이벤트 리스너 등록
      */
     document.addEventListener("DOMContentLoaded", () => {
+        renderPresetSidebar();
         kakao.maps.load(() => {
-        // Places 서비스 인스턴스 초기화 (SDK 로드 완료 후)
-        window._kakaoPS = new kakao.maps.services.Places();
+            window._kakaoPS = new kakao.maps.services.Places();
 
-        // 검색 엔진 독립 인스턴스 초기화
-        initializeSearchEngine("p", pickupState);
-        initializeSearchEngine("d", dropState);
-        
-        // 담당자 입력 필드 리스너
-        document.getElementById("p_mgr").addEventListener("input", () => refreshPhoneHint("p"));
-        document.getElementById("d_mgr").addEventListener("input", () => refreshPhoneHint("d"));
-        
-        // 검색 드롭다운 외부 클릭 시 닫기 처리
-        document.addEventListener("click", (evt) => {
-            if (!evt.target.closest(".field-group")) {
-                document.querySelectorAll(".search-portal").forEach(p => p.classList.remove("active"));
-            }
+            initializeSearchEngine("p", pickupState);
+            initializeSearchEngine("d", dropState);
+
+            document.getElementById("p_mgr").addEventListener("input", () => refreshPhoneHint("p"));
+            document.getElementById("d_mgr").addEventListener("input", () => refreshPhoneHint("d"));
+
+            document.addEventListener("click", (evt) => {
+                if (!evt.target.closest(".field-group")) {
+                    document.querySelectorAll(".search-portal").forEach(p => p.classList.remove("active"));
+                }
+            });
+
+            console.log("System Initialized: All modules active.");
         });
-
-        console.log("System Initialized: All modules active.");
-        }); // kakao.maps.load 끝
     });
 
 </script>
