@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>운송 배차 메시지 생성기 | Enterprise</title>
     
-    <script src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=9eb81b2d9508d3c7222269657b22d9a6&libraries=services"></script>
+    <script src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=9eb81b2d9508d3c7222269657b22d9a6&libraries=services&autoload=false"></script>
     
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@100;300;400;500;700;900&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet">
 
@@ -507,6 +507,13 @@
             lat: 37.6086,
             lng: 126.7628,
             mgr: "김기훈"
+        },
+        "서초": {
+            display: "서초 사무실",
+            addr: "서울 서초구 강남대로 327 3층",
+            lat: 37.4965,
+            lng: 127.0276,
+            mgr: ""
         }
     };
 
@@ -514,7 +521,7 @@
      * @global State Management
      * 상차 및 하차 포인트의 상태 객체
      */
-    const kakaoSearchProvider = new kakao.maps.services.Places();
+    const kakaoSearchProvider = null; // load 후 초기화됨
     
     let pickupState = { name: "", addr: "", lat: 0, lng: 0, map: null, marker: null };
     let dropState = { name: "", addr: "", lat: 0, lng: 0, map: null, marker: null };
@@ -535,11 +542,11 @@
                 return;
             }
 
-            // [Step 1] 프리셋 키워드 우선 체크
-            if (PRESET_LOCATIONS[query]) {
-                const data = PRESET_LOCATIONS[query];
+            // [Step 1] 프리셋 키워드 우선 체크 (부분 포함 매칭)
+            const matchedKey = Object.keys(PRESET_LOCATIONS).find(key => query.includes(key));
+            if (matchedKey) {
+                const data = PRESET_LOCATIONS[matchedKey];
                 executeSelection(prefix, data.display, data.addr, data.lat, data.lng, stateStore);
-                
                 if (data.mgr) {
                     document.getElementById(prefix + "_mgr").value = data.mgr;
                     refreshPhoneHint(prefix);
@@ -549,7 +556,7 @@
             }
 
             // [Step 2] 카카오 맵 API 실시간 키워드 검색 수행
-            kakaoSearchProvider.keywordSearch(query, (results, status) => {
+            window._kakaoPS.keywordSearch(query, (results, status) => {
                 if (status === kakao.maps.services.Status.OK) {
                     renderSearchItems(prefix, results, stateStore);
                 } else {
@@ -732,6 +739,10 @@
      * 페이지 로드 즉시 엔진 가동 및 이벤트 리스너 등록
      */
     document.addEventListener("DOMContentLoaded", () => {
+        kakao.maps.load(() => {
+        // Places 서비스 인스턴스 초기화 (SDK 로드 완료 후)
+        window._kakaoPS = new kakao.maps.services.Places();
+
         // 검색 엔진 독립 인스턴스 초기화
         initializeSearchEngine("p", pickupState);
         initializeSearchEngine("d", dropState);
@@ -748,6 +759,7 @@
         });
 
         console.log("System Initialized: All modules active.");
+        }); // kakao.maps.load 끝
     });
 
 </script>
