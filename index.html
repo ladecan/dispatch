@@ -66,47 +66,76 @@
            [3. LAYOUT COMPONENTS]
            ==================================================
         */
-        .page-layout {
-            max-width: 1340px;
+        .wrapper {
+            max-width: 1100px;
             margin: 0 auto;
+            animation: fadeIn 0.6s ease-out;
+        }
+
+        /* ── 프리셋 드롭다운 ── */
+        .preset-bar {
+            margin-bottom: 24px;
+            position: relative;
+            display: inline-block;
+        }
+
+        .preset-toggle-btn {
             display: flex;
-            gap: 28px;
-            align-items: flex-start;
-        }
-
-        .preset-sidebar {
-            width: 210px;
-            flex-shrink: 0;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 18px;
             background: var(--white);
-            border-radius: 20px;
-            border: 1px solid var(--border-soft);
+            border: 1.5px solid var(--border-soft);
+            border-radius: 12px;
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--navy-deep);
+            cursor: pointer;
             box-shadow: var(--shadow-sm);
-            padding: 20px;
-            position: sticky;
-            top: 32px;
+            transition: all 0.2s;
+            font-family: inherit;
         }
 
-        .preset-sidebar h3 {
-            font-size: 11px;
-            font-weight: 800;
-            text-transform: uppercase;
-            letter-spacing: 1.2px;
-            color: var(--text-muted);
-            margin-bottom: 14px;
-            padding-bottom: 10px;
-            border-bottom: 1px solid var(--border-soft);
+        .preset-toggle-btn:hover {
+            border-color: var(--accent-red);
+            color: var(--accent-red);
         }
+
+        .preset-toggle-btn .arrow {
+            font-size: 10px;
+            transition: transform 0.2s;
+        }
+
+        .preset-toggle-btn.open .arrow { transform: rotate(180deg); }
+
+        .preset-dropdown {
+            position: absolute;
+            top: calc(100% + 8px);
+            left: 0;
+            background: var(--white);
+            border: 1.5px solid var(--border-soft);
+            border-radius: 16px;
+            box-shadow: var(--shadow-lg);
+            z-index: 200;
+            min-width: 260px;
+            padding: 10px;
+            display: none;
+        }
+
+        .preset-dropdown.open { display: block; animation: slideDown 0.18s ease; }
 
         .preset-chip {
-            padding: 10px 12px;
+            padding: 12px 14px;
             border-radius: 10px;
-            margin-bottom: 8px;
+            margin-bottom: 6px;
             border: 1px solid var(--border-soft);
             background: #f8fafc;
         }
 
+        .preset-chip:last-child { margin-bottom: 0; }
+
         .preset-chip-name {
-            font-size: 12px;
+            font-size: 13px;
             font-weight: 700;
             color: var(--navy-deep);
         }
@@ -115,21 +144,21 @@
             font-size: 10px;
             color: var(--text-muted);
             margin-top: 3px;
-            margin-bottom: 8px;
+            margin-bottom: 10px;
         }
 
         .preset-chip-btn-row {
             display: flex;
-            gap: 5px;
+            gap: 6px;
         }
 
         .preset-btn {
             flex: 1;
-            padding: 5px 0;
-            font-size: 10px;
+            padding: 7px 0;
+            font-size: 11px;
             font-weight: 700;
             border: 1.5px solid var(--border-soft);
-            border-radius: 6px;
+            border-radius: 8px;
             background: white;
             color: var(--text-muted);
             cursor: pointer;
@@ -140,10 +169,17 @@
         .preset-btn.pickup:hover { background: #fee2e2; color: #991b1b; border-color: #fca5a5; }
         .preset-btn.drop:hover   { background: #dcfce7; color: #166534; border-color: #86efac; }
 
-        .wrapper {
-            flex: 1;
-            min-width: 0;
-            animation: fadeIn 0.6s ease-out;
+        /* ── 모바일 반응형 ── */
+        @media (max-width: 640px) {
+            body { padding: 20px 12px; }
+            .header-section { flex-direction: column; align-items: flex-start; gap: 10px; margin-bottom: 28px; }
+            .brand-text h1 { font-size: 20px; }
+            .data-card { padding: 24px 18px; }
+            .result-container { padding: 28px 18px; }
+            .output-box { font-size: 13px; height: 300px; }
+            .btn-main { font-size: 16px; padding: 18px; }
+            .settings-card { padding: 20px 18px; }
+            .preset-dropdown { min-width: 220px; }
         }
 
         @keyframes fadeIn {
@@ -449,12 +485,15 @@
 </head>
 <body>
 
-<div class="page-layout">
-<aside class="preset-sidebar">
-    <h3>📌 프리셋 장소</h3>
-    <div id="preset-list"></div>
-</aside>
 <div class="wrapper">
+    <div class="preset-bar">
+        <button class="preset-toggle-btn" id="presetToggleBtn" onclick="togglePresetDropdown()">
+            📌 프리셋 장소 <span class="arrow">▼</span>
+        </button>
+        <div class="preset-dropdown" id="presetDropdown">
+            <div id="preset-list"></div>
+        </div>
+    </div>
     <header class="header-section">
         <div class="brand-group">
             <div class="logo-mark">🚚</div>
@@ -558,7 +597,7 @@
         <textarea id="output_box" class="output-box" readonly></textarea>
     </div>
 
-</div></div>
+</div>
 <datalist id="master_mgrs">
     <option value="김기훈"><option value="오상걸"><option value="박윤아"><option value="김성훈"><option value="이가람">
 </datalist>
@@ -646,6 +685,16 @@
             document.getElementById(prefix + "_mgr").value = data.mgr;
             refreshPhoneHint(prefix);
         }
+        // 선택 후 드롭다운 닫기
+        document.getElementById("presetDropdown").classList.remove("open");
+        document.getElementById("presetToggleBtn").classList.remove("open");
+    }
+
+    function togglePresetDropdown() {
+        const dd  = document.getElementById("presetDropdown");
+        const btn = document.getElementById("presetToggleBtn");
+        dd.classList.toggle("open");
+        btn.classList.toggle("open");
     }
 
     /**
@@ -884,6 +933,10 @@
             document.addEventListener("click", (evt) => {
                 if (!evt.target.closest(".field-group")) {
                     document.querySelectorAll(".search-portal").forEach(p => p.classList.remove("active"));
+                }
+                if (!evt.target.closest(".preset-bar")) {
+                    document.getElementById("presetDropdown").classList.remove("open");
+                    document.getElementById("presetToggleBtn").classList.remove("open");
                 }
             });
 
