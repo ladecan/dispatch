@@ -606,13 +606,33 @@
         Object.entries(PRESET_LOCATIONS).forEach(([key, data]) => {
             const chip = document.createElement("div");
             chip.className = "preset-chip";
-            chip.innerHTML =
-                '<div class="preset-chip-name">' + (data.icon||"📍") + " " + data.display + "</div>" +
-                '<div class="preset-chip-keyword">키워드: ' + key + "</div>" +
-                '<div class="preset-chip-btn-row">' +
-                '<button class="preset-btn pickup" onclick="applyPreset('p','' + key + '')">↑ 상차</button>' +
-                '<button class="preset-btn drop" onclick="applyPreset('d','' + key + '')">↓ 하차</button>' +
-                "</div>";
+
+            const nameDiv = document.createElement("div");
+            nameDiv.className = "preset-chip-name";
+            nameDiv.textContent = (data.icon || "📍") + " " + data.display;
+
+            const kwDiv = document.createElement("div");
+            kwDiv.className = "preset-chip-keyword";
+            kwDiv.textContent = "키워드: " + key;
+
+            const btnUp = document.createElement("button");
+            btnUp.className = "preset-btn pickup";
+            btnUp.textContent = "↑ 상차";
+            btnUp.onclick = () => applyPreset("p", key);
+
+            const btnDown = document.createElement("button");
+            btnDown.className = "preset-btn drop";
+            btnDown.textContent = "↓ 하차";
+            btnDown.onclick = () => applyPreset("d", key);
+
+            const btnRow = document.createElement("div");
+            btnRow.className = "preset-chip-btn-row";
+            btnRow.appendChild(btnUp);
+            btnRow.appendChild(btnDown);
+
+            chip.appendChild(nameDiv);
+            chip.appendChild(kwDiv);
+            chip.appendChild(btnRow);
             container.appendChild(chip);
         });
     }
