@@ -546,7 +546,7 @@
             <div class="logo-mark">🚚</div>
             <div class="brand-text">
                 <h1>Logistics Dispatcher Pro</h1>
-                <p>Enterprise Management System v5.0.1 · 최종수정 4월 20일 09:50</p>
+                <p>Enterprise Management System v5.0.1 · 최종수정 4월 20일 10:00</p>
             </div>
         </div>
         <div style="text-align: right;">
@@ -891,7 +891,11 @@
         if (p0.endsWith("도") || p0 === "경기" || p0 === "강원" || p0 === "충북" || p0 === "충남" || p0 === "전북" || p0 === "전남" || p0 === "경북" || p0 === "경남" || p0 === "제주") {
             return p1.replace(/시$|군$|도$/, "");
         }
-        // 광역시(부산/대구/인천/광주/대전/울산) → 시 이름 그대로
+        // 광역시(인천광역시 등 "광역시" 붙은 경우 → 앞 시이름만)
+        if (p0.endsWith("광역시")) {
+            return p0.replace(/광역시$/, "");
+        }
+        // 그 외 (부산, 인천, 광주, 대전, 울산 등 축약형) → 그대로
         return p0;
     }
 
@@ -937,13 +941,13 @@
         const productTag = document.getElementById("equip_name").value.trim() || "(미입력)";
         const finalMemo = document.getElementById("order_memo").value.trim();
 
-        // 스마트 명칭 조합 로직 (지역 + 장소명)
+        // 스마트 명칭 조합 로직 (지역 + 장소명) - 맨 앞에 없으면 붙임
         const pRegion = parseRegionTag(pickupState.addr);
-        const pDisplay = (pRegion && !pickupState.name.includes(pRegion))
+        const pDisplay = (pRegion && !pickupState.name.startsWith(pRegion))
             ? `${pRegion} ${pickupState.name}` : pickupState.name;
 
         const dRegion = parseRegionTag(dropState.addr);
-        const dDisplay = (dRegion && !dropState.name.includes(dRegion))
+        const dDisplay = (dRegion && !dropState.name.startsWith(dRegion))
             ? `${dRegion} ${dropState.name}` : dropState.name;
 
         // 템플릿 엔진 구동
