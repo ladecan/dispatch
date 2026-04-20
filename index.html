@@ -952,7 +952,7 @@
         const phoneDom = document.getElementById(prefix + "_phone");
         const phone = MASTER_CONTACT_DATA[nameVal];
         if (phone) {
-            hintDom.innerHTML = `☎️ ${phone}`;
+            hintDom.innerHTML = `☎️ ${phone} <span style="font-weight:400;color:#94a3b8;margin-left:6px;">· 잘못 선택했다면 × 눌러 수정</span>`;
             phoneDom.value = phone;
         } else {
             hintDom.innerHTML = "";
