@@ -992,7 +992,7 @@
         const pFullAddr = pickupState.addr ? (pDetail ? pickupState.addr + " " + pDetail : pickupState.addr) : "(주소 미선택)";
         outputMessage += `주소 : ${pFullAddr}\n`;
         outputMessage += `담당자 : ${pMgrName}`;
-        if (MASTER_CONTACT_DATA[pMgrRaw]) outputMessage += ` (${MASTER_CONTACT_DATA[pMgrRaw]})`;
+        if (MASTER_CONTACT_DATA[pMgrRaw]) outputMessage += `\n연락처 : ${MASTER_CONTACT_DATA[pMgrRaw]}`;
 
         outputMessage += `\n\n[하차 정보]\n`;
         outputMessage += `하차지 : ${dDisplay || "(장소 미선택)"}\n`;
@@ -1002,7 +1002,7 @@
         const dFullAddr = dropState.addr ? (dDetail ? dropState.addr + " " + dDetail : dropState.addr) : "(주소 미선택)";
         outputMessage += `주소 : ${dFullAddr}\n`;
         outputMessage += `담당자 : ${dMgrName}`;
-        if (MASTER_CONTACT_DATA[dMgrRaw]) outputMessage += ` (${MASTER_CONTACT_DATA[dMgrRaw]})`;
+        if (MASTER_CONTACT_DATA[dMgrRaw]) outputMessage += `\n연락처 : ${MASTER_CONTACT_DATA[dMgrRaw]}`;
 
         // 비고 섹션 추가 (있는 경우에만)
         if (finalMemo) {
