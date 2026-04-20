@@ -589,7 +589,10 @@
 
             <div class="field-group">
                 <label>현장 담당자</label>
-                <input type="text" id="p_mgr" list="master_mgrs" placeholder="성함 입력">
+                <div style="position:relative;">
+                    <input type="text" id="p_mgr" list="master_mgrs" placeholder="성함 입력" style="padding-right:40px;">
+                    <button onclick="clearMgr('p')" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;font-size:16px;color:#94a3b8;cursor:pointer;line-height:1;">×</button>
+                </div>
                 <div id="p_hint" class="mgr-hint"></div>
             </div>
         </section>
@@ -626,7 +629,10 @@
 
             <div class="field-group">
                 <label>수령 담당자</label>
-                <input type="text" id="d_mgr" list="master_mgrs" placeholder="성함 입력">
+                <div style="position:relative;">
+                    <input type="text" id="d_mgr" list="master_mgrs" placeholder="성함 입력" style="padding-right:40px;">
+                    <button onclick="clearMgr('d')" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;font-size:16px;color:#94a3b8;cursor:pointer;line-height:1;">×</button>
+                </div>
                 <div id="d_hint" class="mgr-hint"></div>
             </div>
         </section>
@@ -763,6 +769,12 @@
         // 선택 후 드롭다운 닫기
         document.getElementById("presetDropdown").classList.remove("open");
         document.getElementById("presetToggleBtn").classList.remove("open");
+    }
+
+    function clearMgr(prefix) {
+        document.getElementById(prefix + "_mgr").value = "";
+        document.getElementById(prefix + "_hint").innerHTML = "";
+        document.getElementById(prefix + "_mgr").focus();
     }
 
     function togglePresetDropdown() {
