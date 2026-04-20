@@ -589,12 +589,12 @@
 
             <div class="field-group">
                 <label>현장 담당자</label>
-                <div style="position:relative;">
-                    <input type="text" id="p_mgr" list="master_mgrs" placeholder="성함 입력" style="padding-right:40px;">
-                    <button onclick="clearMgr('p')" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;font-size:16px;color:#94a3b8;cursor:pointer;line-height:1;">×</button>
-                </div>
+                <input type="text" id="p_mgr" list="master_mgrs" placeholder="이름 입력 (목록에서 선택 또는 직접 입력)">
                 <div id="p_hint" class="mgr-hint"></div>
-                <div style="font-size:11px;color:#94a3b8;margin-top:4px;padding-left:4px;">잘못 선택했다면 × 버튼을 눌러 수정하세요</div>
+            </div>
+            <div class="field-group">
+                <label>현장 담당자 연락처</label>
+                <input type="text" id="p_phone" placeholder="직접 입력 (목록에 있으면 자동 입력)">
             </div>
         </section>
 
@@ -630,12 +630,12 @@
 
             <div class="field-group">
                 <label>수령 담당자</label>
-                <div style="position:relative;">
-                    <input type="text" id="d_mgr" list="master_mgrs" placeholder="성함 입력" style="padding-right:40px;">
-                    <button onclick="clearMgr('d')" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;font-size:16px;color:#94a3b8;cursor:pointer;line-height:1;">×</button>
-                </div>
+                <input type="text" id="d_mgr" list="master_mgrs" placeholder="이름 입력 (목록에서 선택 또는 직접 입력)">
                 <div id="d_hint" class="mgr-hint"></div>
-                <div style="font-size:11px;color:#94a3b8;margin-top:4px;padding-left:4px;">잘못 선택했다면 × 버튼을 눌러 수정하세요</div>
+            </div>
+            <div class="field-group">
+                <label>수령 담당자 연락처</label>
+                <input type="text" id="d_phone" placeholder="직접 입력 (목록에 있으면 자동 입력)">
             </div>
         </section>
 
@@ -773,11 +773,7 @@
         document.getElementById("presetToggleBtn").classList.remove("open");
     }
 
-    function clearMgr(prefix) {
-        document.getElementById(prefix + "_mgr").value = "";
-        document.getElementById(prefix + "_hint").innerHTML = "";
-        document.getElementById(prefix + "_mgr").focus();
-    }
+
 
     function togglePresetDropdown() {
         const dd  = document.getElementById("presetDropdown");
@@ -941,11 +937,14 @@
     function refreshPhoneHint(prefix) {
         const nameVal = document.getElementById(prefix + "_mgr").value.trim();
         const hintDom = document.getElementById(prefix + "_hint");
-        
-        if (MASTER_CONTACT_DATA[nameVal]) {
-            hintDom.innerHTML = `☎️ ${MASTER_CONTACT_DATA[nameVal]}`;
+        const phoneDom = document.getElementById(prefix + "_phone");
+        const phone = MASTER_CONTACT_DATA[nameVal];
+        if (phone) {
+            hintDom.innerHTML = `☎️ ${phone}`;
+            phoneDom.value = phone;
         } else {
             hintDom.innerHTML = "";
+            phoneDom.value = "";
         }
     }
 
@@ -1006,7 +1005,8 @@
         const pFullAddr = pickupState.addr ? (pDetail ? pickupState.addr + " " + pDetail : pickupState.addr) : "(주소 미선택)";
         outputMessage += `주소 : ${pFullAddr}\n`;
         outputMessage += `담당자 : ${pMgrName}`;
-        if (MASTER_CONTACT_DATA[pMgrRaw]) outputMessage += `\n연락처 : ${MASTER_CONTACT_DATA[pMgrRaw]}`;
+        const pPhone = document.getElementById("p_phone").value.trim();
+        if (pPhone) outputMessage += `\n연락처 : ${pPhone}`;
 
         outputMessage += `\n\n[하차 정보]\n`;
         outputMessage += `하차지 : ${dDisplay || "(장소 미선택)"}\n`;
@@ -1016,7 +1016,8 @@
         const dFullAddr = dropState.addr ? (dDetail ? dropState.addr + " " + dDetail : dropState.addr) : "(주소 미선택)";
         outputMessage += `주소 : ${dFullAddr}\n`;
         outputMessage += `담당자 : ${dMgrName}`;
-        if (MASTER_CONTACT_DATA[dMgrRaw]) outputMessage += `\n연락처 : ${MASTER_CONTACT_DATA[dMgrRaw]}`;
+        const dPhone = document.getElementById("d_phone").value.trim();
+        if (dPhone) outputMessage += `\n연락처 : ${dPhone}`;
 
         // 비고 섹션 추가 (있는 경우에만)
         if (finalMemo) {
