@@ -1085,6 +1085,20 @@
             document.getElementById("p_mgr").addEventListener("input", () => refreshPhoneHint("p"));
             document.getElementById("d_mgr").addEventListener("input", () => refreshPhoneHint("d"));
 
+            // 연락처 직접 입력 시 자동 하이픈
+            function formatPhone(input) {
+                let v = input.value.replace(/[^0-9]/g, "");
+                if (v.length <= 3) {
+                    input.value = v;
+                } else if (v.length <= 7) {
+                    input.value = v.slice(0,3) + "-" + v.slice(3);
+                } else {
+                    input.value = v.slice(0,3) + "-" + v.slice(3,7) + "-" + v.slice(7,11);
+                }
+            }
+            document.getElementById("p_phone").addEventListener("input", function() { formatPhone(this); });
+            document.getElementById("d_phone").addEventListener("input", function() { formatPhone(this); });
+
             document.addEventListener("click", (evt) => {
                 if (!evt.target.closest(".field-group")) {
                     document.querySelectorAll(".search-portal").forEach(p => p.classList.remove("active"));
