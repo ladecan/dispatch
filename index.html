@@ -523,6 +523,10 @@
                 <label>자동 매칭 전체 주소</label>
                 <input type="text" id="p_addr" readonly placeholder="장소 선택 시 자동 입력">
             </div>
+            <div class="field-group">
+                <label>상세 주소 <span style="color:#94a3b8;font-weight:400;">(선택)</span></label>
+                <input type="text" id="p_addr_detail" placeholder="동/호수, 층, 건물명 등">
+            </div>
 
             <div id="p_map_wrap" class="map-canvas">
                 <div id="p_map_dom" style="width:100%; height:100%;"></div>
@@ -552,6 +556,10 @@
             <div class="field-group">
                 <label>자동 매칭 전체 주소</label>
                 <input type="text" id="d_addr" readonly placeholder="장소 선택 시 자동 입력">
+            </div>
+            <div class="field-group">
+                <label>상세 주소 <span style="color:#94a3b8;font-weight:400;">(선택)</span></label>
+                <input type="text" id="d_addr_detail" placeholder="동/호수, 층, 건물명 등">
             </div>
 
             <div id="d_map_wrap" class="map-canvas">
@@ -816,11 +824,20 @@
     function parseRegionTag(address) {
         if (!address) return "";
         const parts = address.split(" ");
-        if (parts.length > 1) {
-            // 주소 두 번째 단어에서 행정구역 접미사 제거 (예: 서초구 -> 서초)
-            return parts[1].replace(/구$|시$|군$/, "");
+        const p0 = parts[0]; // 예: 서울, 경기도, 광주, 부산
+        const p1 = parts[1] || ""; // 예: 서초구, 김포시, 북구
+
+        // 서울 → 구 단위 표시 (서울 서초구 → "서초")
+        if (p0 === "서울") {
+            return p1.replace(/구$/, "");
         }
-        return "";
+        // 경기도/강원도/충청도 등 "도" 단위 → 시/군 표시 (경기도 김포시 → "김포")
+        if (p0.endsWith("도")) {
+            return p1.replace(/시$|군$/, "");
+        }
+        // 광역시(부산/대구/인천/광주/대전/울산) 또는 특별자치시 → 시 이름 그대로
+        // "광주 북구" → "광주", "부산 해운대구" → "부산"
+        return p0;
     }
 
     /**
@@ -865,7 +882,9 @@
         outputMessage += `상차지 : ${pDisplay || "(장소 미선택)"}\n`;
         outputMessage += `일시 : ${pTimeStr}\n`;
         outputMessage += `장비명 : ${productTag}\n`;
-        outputMessage += `주소 : ${pickupState.addr || "(주소 미선택)"}\n`;
+        const pDetail = document.getElementById("p_addr_detail").value.trim();
+        const pFullAddr = pickupState.addr ? (pDetail ? pickupState.addr + " " + pDetail : pickupState.addr) : "(주소 미선택)";
+        outputMessage += `주소 : ${pFullAddr}\n`;
         outputMessage += `담당자 : ${pMgrName}`;
         if (MASTER_CONTACT_DATA[pMgrName]) outputMessage += ` (${MASTER_CONTACT_DATA[pMgrName]})`;
 
@@ -873,7 +892,9 @@
         outputMessage += `하차지 : ${dDisplay || "(장소 미선택)"}\n`;
         outputMessage += `일시 : ${dTimeStr}\n`;
         outputMessage += `장비명 : ${productTag}\n`;
-        outputMessage += `주소 : ${dropState.addr || "(주소 미선택)"}\n`;
+        const dDetail = document.getElementById("d_addr_detail").value.trim();
+        const dFullAddr = dropState.addr ? (dDetail ? dropState.addr + " " + dDetail : dropState.addr) : "(주소 미선택)";
+        outputMessage += `주소 : ${dFullAddr}\n`;
         outputMessage += `담당자 : ${dMgrName}`;
         if (MASTER_CONTACT_DATA[dMgrName]) outputMessage += ` (${MASTER_CONTACT_DATA[dMgrName]})`;
 
