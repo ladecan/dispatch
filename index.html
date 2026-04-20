@@ -589,12 +589,18 @@
 
             <div class="field-group">
                 <label>현장 담당자</label>
-                <input type="text" id="p_mgr" list="master_mgrs" placeholder="이름 입력 (목록에서 선택 또는 직접 입력)">
+                <div style="position:relative;">
+                    <input type="text" id="p_mgr" list="master_mgrs" placeholder="이름 입력 (목록에서 선택 또는 직접 입력)" style="padding-right:40px;">
+                    <button onclick="document.getElementById('p_mgr').value='';document.getElementById('p_hint').innerHTML='';document.getElementById('p_phone').value='';document.getElementById('p_mgr').focus();" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;font-size:16px;color:#94a3b8;cursor:pointer;line-height:1;">×</button>
+                </div>
                 <div id="p_hint" class="mgr-hint"></div>
             </div>
             <div class="field-group">
                 <label>현장 담당자 연락처</label>
-                <input type="text" id="p_phone" placeholder="직접 입력 (목록에 있으면 자동 입력)">
+                <div style="position:relative;">
+                    <input type="text" id="p_phone" placeholder="직접 입력 (목록에 있으면 자동 입력)" style="padding-right:40px;">
+                    <button onclick="document.getElementById('p_phone').value='';document.getElementById('p_phone').focus();" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;font-size:16px;color:#94a3b8;cursor:pointer;line-height:1;">×</button>
+                </div>
             </div>
         </section>
 
@@ -630,12 +636,18 @@
 
             <div class="field-group">
                 <label>수령 담당자</label>
-                <input type="text" id="d_mgr" list="master_mgrs" placeholder="이름 입력 (목록에서 선택 또는 직접 입력)">
+                <div style="position:relative;">
+                    <input type="text" id="d_mgr" list="master_mgrs" placeholder="이름 입력 (목록에서 선택 또는 직접 입력)" style="padding-right:40px;">
+                    <button onclick="document.getElementById('d_mgr').value='';document.getElementById('d_hint').innerHTML='';document.getElementById('d_phone').value='';document.getElementById('d_mgr').focus();" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;font-size:16px;color:#94a3b8;cursor:pointer;line-height:1;">×</button>
+                </div>
                 <div id="d_hint" class="mgr-hint"></div>
             </div>
             <div class="field-group">
                 <label>수령 담당자 연락처</label>
-                <input type="text" id="d_phone" placeholder="직접 입력 (목록에 있으면 자동 입력)">
+                <div style="position:relative;">
+                    <input type="text" id="d_phone" placeholder="직접 입력 (목록에 있으면 자동 입력)" style="padding-right:40px;">
+                    <button onclick="document.getElementById('d_phone').value='';document.getElementById('d_phone').focus();" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;font-size:16px;color:#94a3b8;cursor:pointer;line-height:1;">×</button>
+                </div>
             </div>
         </section>
 
