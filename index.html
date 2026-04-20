@@ -879,23 +879,32 @@
     function parseRegionTag(address) {
         if (!address) return "";
         const parts = address.split(" ");
-        const p0 = parts[0]; // 예: 서울, 경기, 경기도, 광주, 부산
-        const p1 = parts[1] || ""; // 예: 서초구, 김포시, 가평군, 북구
+        const p0 = parts[0];
+        const p1 = parts[1] || "";
 
-        // 서울 → 구 단위 (서울 서초구 → "서초")
-        if (p0 === "서울") {
+        // 서울 → 구명 (서울 서초구 → "서초")
+        if (p0 === "서울특별시" || p0 === "서울") {
             return p1.replace(/구$/, "");
         }
-        // "경기도" 또는 카카오가 줄인 "경기", 그 외 도 단위
-        // → 시/군 표시 (경기 가평군 → "가평", 경기도 김포시 → "김포")
-        if (p0.endsWith("도") || p0 === "경기" || p0 === "강원" || p0 === "충북" || p0 === "충남" || p0 === "전북" || p0 === "전남" || p0 === "경북" || p0 === "경남" || p0 === "제주") {
-            return p1.replace(/시$|군$|도$/, "");
+        // 경기/도 단위 → 시/군명 (경기 가평군 → "가평")
+        const doList = ["경기도","경기","강원도","강원","충청북도","충북","충청남도","충남",
+                        "전라북도","전북","전라남도","전남","경상북도","경북","경상남도","경남"];
+        if (doList.includes(p0)) {
+            return p1.replace(/시$|군$/, "");
         }
-        // 광역시(인천광역시 등 "광역시" 붙은 경우 → 앞 시이름만)
+        // 제주특별자치도 / 제주 → "제주"
+        if (p0 === "제주특별자치도" || p0 === "제주") {
+            return "제주";
+        }
+        // 세종특별자치시 → "세종"
+        if (p0 === "세종특별자치시" || p0 === "세종") {
+            return "세종";
+        }
+        // 광역시 전체 표기 (부산광역시 → "부산")
         if (p0.endsWith("광역시")) {
             return p0.replace(/광역시$/, "");
         }
-        // 그 외 (부산, 인천, 광주, 대전, 울산 등 축약형) → 그대로
+        // 축약형 광역시 및 나머지 (부산, 인천, 대전, 대구, 울산, 광주 등)
         return p0;
     }
 
@@ -941,14 +950,16 @@
         const productTag = document.getElementById("equip_name").value.trim() || "(미입력)";
         const finalMemo = document.getElementById("order_memo").value.trim();
 
-        // 스마트 명칭 조합 로직 (지역 + 장소명) - 맨 앞에 없으면 붙임
+        // 스마트 명칭 조합: 지역명이 맨 앞에 없으면 앞에 붙임
         const pRegion = parseRegionTag(pickupState.addr);
-        const pDisplay = (pRegion && !pickupState.name.startsWith(pRegion))
-            ? `${pRegion} ${pickupState.name}` : pickupState.name;
+        const pDisplay = pRegion
+            ? (pickupState.name.startsWith(pRegion) ? pickupState.name : pRegion + " " + pickupState.name)
+            : pickupState.name;
 
         const dRegion = parseRegionTag(dropState.addr);
-        const dDisplay = (dRegion && !dropState.name.startsWith(dRegion))
-            ? `${dRegion} ${dropState.name}` : dropState.name;
+        const dDisplay = dRegion
+            ? (dropState.name.startsWith(dRegion) ? dropState.name : dRegion + " " + dropState.name)
+            : dropState.name;
 
         // 템플릿 엔진 구동
         let outputMessage = `[상차 정보]\n`;
