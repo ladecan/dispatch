@@ -691,7 +691,8 @@
         },
         "켄델라사무실": {
             display: "켄델라 서초 사무실",
-            addr: "서울 서초구 강남대로 327 3층",
+            addr: "서울 서초구 강남대로 327",
+            detail: "3층",
             lat: 37.4965,
             lng: 127.0276,
             mgr: "박윤아",
@@ -746,6 +747,7 @@
             document.getElementById(prefix + "_mgr").value = data.mgr;
             refreshPhoneHint(prefix);
         }
+        document.getElementById(prefix + "_addr_detail").value = data.detail || "";
         // 선택 후 드롭다운 닫기
         document.getElementById("presetDropdown").classList.remove("open");
         document.getElementById("presetToggleBtn").classList.remove("open");
