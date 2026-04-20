@@ -546,7 +546,7 @@
             <div class="logo-mark">🚚</div>
             <div class="brand-text">
                 <h1>Logistics Dispatcher Pro</h1>
-                <p>Enterprise Management System v5.0.1 · 최종수정 4월 20일 10:00</p>
+                <p>Enterprise Management System v5.0.1 · 최종수정 2026년 04월 20일 09:35</p>
             </div>
         </div>
         <div style="text-align: right;">
@@ -950,16 +950,24 @@
         const productTag = document.getElementById("equip_name").value.trim() || "(미입력)";
         const finalMemo = document.getElementById("order_memo").value.trim();
 
-        // 스마트 명칭 조합: 지역명이 맨 앞에 없으면 앞에 붙임
+        // 장소명에서 지역명 포함 suffix 제거 후 앞에 지역명 붙임
+        // 예) "밴스의원 부산점" + 지역"부산" → "부산 밴스의원"
+        // 예) "CNP차앤박 인천점" + 지역"인천" → "인천 CNP차앤박"
+        function buildDisplay(name, region) {
+            if (!region) return name;
+            if (name.startsWith(region)) return name;
+            // "OO점", "OO지점", "OO센터" 형태에서 지역명 포함 suffix 제거
+            const cleaned = name
+                .replace(new RegExp(region + "\\s*(점|지점|센터|본점|지사|직영점|병원점)?$"), "")
+                .trim();
+            return region + " " + cleaned;
+        }
+
         const pRegion = parseRegionTag(pickupState.addr);
-        const pDisplay = pRegion
-            ? (pickupState.name.startsWith(pRegion) ? pickupState.name : pRegion + " " + pickupState.name)
-            : pickupState.name;
+        const pDisplay = buildDisplay(pickupState.name, pRegion);
 
         const dRegion = parseRegionTag(dropState.addr);
-        const dDisplay = dRegion
-            ? (dropState.name.startsWith(dRegion) ? dropState.name : dRegion + " " + dropState.name)
-            : dropState.name;
+        const dDisplay = buildDisplay(dropState.name, dRegion);
 
         // 템플릿 엔진 구동
         let outputMessage = `[상차 정보]\n`;
