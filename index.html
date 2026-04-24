@@ -170,6 +170,26 @@
         .preset-btn.drop:hover   { background: #dcfce7; color: #166534; border-color: #86efac; }
 
 
+        /* ── 날짜 빠른 선택 버튼 ── */
+        .date-quick-btns {
+            display: flex;
+            gap: 6px;
+            margin-bottom: 8px;
+        }
+        .date-quick-btn {
+            padding: 4px 12px;
+            font-size: 11px;
+            font-weight: 700;
+            border: 1.5px solid var(--border-soft);
+            border-radius: 8px;
+            background: white;
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: all 0.15s;
+            font-family: inherit;
+        }
+        .date-quick-btn:hover { background: var(--navy-deep); color: white; border-color: var(--navy-deep); }
+
         /* ── 날짜+시간 입력 ── */
         .datetime-row {
             display: flex;
@@ -581,6 +601,11 @@
 
             <div class="field-group" style="margin-top: 24px;">
                 <label>상차 일시</label>
+                <div class="date-quick-btns">
+                    <button class="date-quick-btn" onclick="setQuickDate('p','today')">오늘</button>
+                    <button class="date-quick-btn" onclick="setQuickDate('p','tomorrow')">내일</button>
+                    <button class="date-quick-btn" onclick="setQuickDate('p','clear')">초기화</button>
+                </div>
                 <div class="datetime-row">
                     <input type="date" id="p_date">
                     <input type="text" class="time-input" id="p_time_txt" placeholder="시간 (예: 09:00)">
@@ -628,6 +653,11 @@
 
             <div class="field-group" style="margin-top: 24px;">
                 <label>하차 일시</label>
+                <div class="date-quick-btns">
+                    <button class="date-quick-btn" onclick="setQuickDate('d','today')">오늘</button>
+                    <button class="date-quick-btn" onclick="setQuickDate('d','tomorrow')">내일</button>
+                    <button class="date-quick-btn" onclick="setQuickDate('d','clear')">초기화</button>
+                </div>
                 <div class="datetime-row">
                     <input type="date" id="d_date">
                     <input type="text" class="time-input" id="d_time_txt" placeholder="시간 (예: 14:00)">
@@ -663,6 +693,9 @@
     </div>
 
     <div class="action-zone">
+        <div style="display:flex; gap:12px; margin-bottom:12px; justify-content:flex-end;">
+            <button onclick="resetAll()" style="padding:10px 20px;border:1.5px solid var(--border-soft);border-radius:12px;background:white;font-size:13px;font-weight:700;color:var(--text-muted);cursor:pointer;font-family:inherit;transition:all 0.2s;" onmouseover="this.style.borderColor='#f43f5e';this.style.color='#f43f5e'" onmouseout="this.style.borderColor='var(--border-soft)';this.style.color='var(--text-muted)'">🔄 전체 초기화</button>
+        </div>
         <button class="btn-main" onclick="processFinalOutput()">
             Generate Dispatch Message ⚡
         </button>
@@ -796,6 +829,36 @@
 
 
 
+    function setQuickDate(prefix, type) {
+        const input = document.getElementById(prefix + "_date");
+        if (type === "clear") { input.value = ""; return; }
+        const d = new Date();
+        if (type === "tomorrow") d.setDate(d.getDate() + 1);
+        const yyyy = d.getFullYear();
+        const mm = String(d.getMonth() + 1).padStart(2, "0");
+        const dd = String(d.getDate()).padStart(2, "0");
+        input.value = `${yyyy}-${mm}-${dd}`;
+    }
+
+    function resetAll() {
+        ["p","d"].forEach(prefix => {
+            document.getElementById(prefix + "_search").value = "";
+            document.getElementById(prefix + "_addr").value = "";
+            document.getElementById(prefix + "_addr_detail").value = "";
+            document.getElementById(prefix + "_mgr").value = "";
+            document.getElementById(prefix + "_phone").value = "";
+            document.getElementById(prefix + "_hint").innerHTML = "";
+            document.getElementById(prefix + "_date").value = "";
+            document.getElementById(prefix + "_time_txt").value = "";
+            document.getElementById(prefix + "_map_wrap").classList.remove("visible");
+        });
+        document.getElementById("equip_name").value = "";
+        document.getElementById("order_memo").value = "";
+        document.getElementById("output_box").value = "";
+        pickupState = { name: "", addr: "", lat: 0, lng: 0, map: null, marker: null };
+        dropState   = { name: "", addr: "", lat: 0, lng: 0, map: null, marker: null };
+    }
+
     function togglePresetDropdown() {
         const dd  = document.getElementById("presetDropdown");
         const btn = document.getElementById("presetToggleBtn");
@@ -825,9 +888,12 @@
             
             if (!query) {
                 portalDom.classList.remove("active");
-                // 검색창 비우면 주소/상세주소/지도 초기화
+                // 검색창 비우면 주소/상세주소/지도/담당자/연락처 초기화
                 document.getElementById(prefix + "_addr").value = "";
                 document.getElementById(prefix + "_addr_detail").value = "";
+                document.getElementById(prefix + "_mgr").value = "";
+                document.getElementById(prefix + "_phone").value = "";
+                document.getElementById(prefix + "_hint").innerHTML = "";
                 stateStore.name = "";
                 stateStore.addr = "";
                 stateStore.lat = 0;
@@ -836,10 +902,12 @@
                 return;
             }
 
-            // [Step 1] 프리셋 키워드 우선 체크 (정확 일치)
-            if (PRESET_LOCATIONS[query]) {
-                const data = PRESET_LOCATIONS[query];
+            // [Step 1] 프리셋 키워드 우선 체크 (부분 포함)
+            const matchedPreset = Object.keys(PRESET_LOCATIONS).find(k => query.includes(k));
+            if (matchedPreset) {
+                const data = PRESET_LOCATIONS[matchedPreset];
                 executeSelection(prefix, data.display, data.addr, data.lat, data.lng, stateStore);
+                document.getElementById(prefix + "_addr_detail").value = data.detail || "";
                 if (data.mgr) {
                     document.getElementById(prefix + "_mgr").value = data.mgr;
                     refreshPhoneHint(prefix);
@@ -849,13 +917,22 @@
             }
 
             // [Step 2] 카카오 맵 API 실시간 키워드 검색 수행
-            window._kakaoPS.keywordSearch(query, (results, status) => {
-                if (status === kakao.maps.services.Status.OK) {
-                    renderSearchItems(prefix, results, stateStore);
-                } else {
-                    portalDom.classList.remove("active");
-                }
-            });
+            try {
+                window._kakaoPS.keywordSearch(query, (results, status) => {
+                    if (status === kakao.maps.services.Status.OK) {
+                        renderSearchItems(prefix, results, stateStore);
+                    } else if (status === kakao.maps.services.Status.ZERO_RESULT) {
+                        portalDom.innerHTML = '<div style="padding:16px;text-align:center;color:#94a3b8;font-size:13px;">검색 결과가 없습니다</div>';
+                        portalDom.classList.add("active");
+                    } else {
+                        portalDom.innerHTML = '<div style="padding:16px;text-align:center;color:#f43f5e;font-size:13px;">⚠️ 검색 오류가 발생했습니다. 네트워크를 확인해주세요.</div>';
+                        portalDom.classList.add("active");
+                    }
+                });
+            } catch(e) {
+                portalDom.innerHTML = '<div style="padding:16px;text-align:center;color:#f43f5e;font-size:13px;">⚠️ 카카오 지도 서비스에 연결할 수 없습니다.</div>';
+                portalDom.classList.add("active");
+            }
         });
     }
 
@@ -919,7 +996,7 @@
             stateStore.map.setCenter(targetCoord);
             stateStore.marker.setPosition(targetCoord);
             // 렌더링 타이밍 보정
-            setTimeout(() => stateStore.map.relayout(), 100);
+            setTimeout(() => stateStore.map.relayout(), 300);
         }
     }
 
@@ -985,12 +1062,11 @@
         // 폼 필드 데이터 수집
         function formatDate(dateVal) {
             if (!dateVal) return "";
-            const d = new Date(dateVal);
+            // UTC 밀림 방지: 문자열 직접 파싱
+            const [y, m, d] = dateVal.split("-").map(Number);
+            const dt = new Date(y, m - 1, d);
             const days = ["일","월","화","수","목","금","토"];
-            const mm = d.getMonth() + 1;
-            const dd = d.getDate();
-            const day = days[d.getDay()];
-            return mm + "/" + String(dd).padStart(2,"0") + "(" + day + ")";
+            return m + "/" + String(d).padStart(2,"0") + "(" + days[dt.getDay()] + ")";
         }
         const pDateStr = formatDate(document.getElementById("p_date").value);
         const pTimeTxt = document.getElementById("p_time_txt").value.trim();
