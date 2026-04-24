@@ -729,6 +729,15 @@
             lng: 127.0276,
             mgr: "박윤아",
             icon: "🏢"
+        },
+        "부산사무소": {
+            display: "켄델라 부산 사무소",
+            addr: "부산 해운대구 센텀중앙로 97",
+            detail: "A동 2804호",
+            lat: 35.1688,
+            lng: 129.1317,
+            mgr: "",
+            icon: "🏢"
         }
     };
 
@@ -816,6 +825,14 @@
             
             if (!query) {
                 portalDom.classList.remove("active");
+                // 검색창 비우면 주소/상세주소/지도 초기화
+                document.getElementById(prefix + "_addr").value = "";
+                document.getElementById(prefix + "_addr_detail").value = "";
+                stateStore.name = "";
+                stateStore.addr = "";
+                stateStore.lat = 0;
+                stateStore.lng = 0;
+                document.getElementById(prefix + "_map_wrap").classList.remove("visible");
                 return;
             }
 
