@@ -750,6 +750,7 @@
         },
         "켄델라사무실": {
             display: "켄델라 서초 사무실",
+            displayOverride: "서초 켄델라",
             addr: "서울 서초구 강남대로 327",
             detail: "3층",
             lat: 37.4965,
@@ -759,6 +760,7 @@
         },
         "부산사무소": {
             display: "켄델라 부산 사무소",
+            displayOverride: "부산 켄델라",
             addr: "부산 해운대구 센텀중앙로 97",
             detail: "A동 2804호",
             lat: 35.1688,
@@ -772,7 +774,8 @@
             lat: 37.5145,
             lng: 127.1058,
             mgr: "",
-            icon: "🏥"
+            icon: "🏥",
+            slim: true
         }
     };
 
@@ -818,7 +821,18 @@
         const data = PRESET_LOCATIONS[key];
         if (!data) return;
         const stateStore = prefix === "p" ? pickupState : dropState;
-        executeSelection(prefix, data.display, data.addr, data.lat, data.lng, stateStore);
+        stateStore.slim = !!data.slim;
+        stateStore.displayOverride = data.displayOverride || "";
+        if (data.addr) {
+            executeSelection(prefix, data.display, data.addr, data.lat, data.lng, stateStore);
+        } else {
+            // 주소 없는 프리셋: 장소명만 세팅, 지도 숨김
+            document.getElementById(prefix + "_search").value = data.display;
+            document.getElementById(prefix + "_addr").value = "";
+            stateStore.name = data.display;
+            stateStore.addr = "";
+            document.getElementById(prefix + "_map_wrap").classList.remove("visible");
+        }
         if (data.mgr) {
             document.getElementById(prefix + "_mgr").value = data.mgr;
             refreshPhoneHint(prefix);
@@ -854,8 +868,8 @@
         document.getElementById("equip_name").value = "";
         document.getElementById("order_memo").value = "";
         document.getElementById("output_box").value = "";
-        pickupState = { name: "", addr: "", lat: 0, lng: 0, map: null, marker: null };
-        dropState   = { name: "", addr: "", lat: 0, lng: 0, map: null, marker: null };
+        pickupState = { name: "", addr: "", lat: 0, lng: 0, map: null, marker: null, slim: false, displayOverride: "" };
+        dropState   = { name: "", addr: "", lat: 0, lng: 0, map: null, marker: null, slim: false, displayOverride: "" };
     }
 
     function togglePresetDropdown() {
@@ -867,8 +881,8 @@
 
     const kakaoSearchProvider = null;
     
-    let pickupState = { name: "", addr: "", lat: 0, lng: 0, map: null, marker: null };
-    let dropState = { name: "", addr: "", lat: 0, lng: 0, map: null, marker: null };
+    let pickupState = { name: "", addr: "", lat: 0, lng: 0, map: null, marker: null, slim: false, displayOverride: "" };
+    let dropState = { name: "", addr: "", lat: 0, lng: 0, map: null, marker: null, slim: false, displayOverride: "" };
 
     function initializeSearchEngine(prefix, stateStore) {
         const inputDom = document.getElementById(prefix + "_search");
@@ -1045,32 +1059,36 @@
         }
 
         const pRegion = parseRegionTag(pickupState.addr);
-        const pDisplay = buildDisplay(pickupState.name, pRegion);
+        const pDisplay = pickupState.displayOverride || buildDisplay(pickupState.name, pRegion);
 
         const dRegion = parseRegionTag(dropState.addr);
-        const dDisplay = buildDisplay(dropState.name, dRegion);
+        const dDisplay = dropState.displayOverride || buildDisplay(dropState.name, dRegion);
 
         let outputMessage = `안녕하세요 팀장님\n아래의 내역 배차 부탁드립니다\n\n[상차 정보]\n`;
         outputMessage += `상차지 : ${pDisplay || "(장소 미선택)"}\n`;
         outputMessage += `일시 : ${pTimeStr}\n`;
-        outputMessage += `장비명 : ${productTag}\n`;
-        const pDetail = document.getElementById("p_addr_detail").value.trim();
-        const pFullAddr = pickupState.addr ? (pDetail ? pickupState.addr + " " + pDetail : pickupState.addr) : "(주소 미선택)";
-        outputMessage += `주소 : ${pFullAddr}\n`;
-        outputMessage += `담당자 : ${pMgrName}`;
-        const pPhone = document.getElementById("p_phone").value.trim();
-        if (pPhone) outputMessage += `\n연락처 : ${pPhone}`;
+        outputMessage += `장비명 : ${productTag}`;
+        if (!pickupState.slim) {
+            const pDetail = document.getElementById("p_addr_detail").value.trim();
+            const pFullAddr = pickupState.addr ? (pDetail ? pickupState.addr + " " + pDetail : pickupState.addr) : "(주소 미선택)";
+            outputMessage += `\n주소 : ${pFullAddr}\n`;
+            outputMessage += `담당자 : ${pMgrName}`;
+            const pPhone = document.getElementById("p_phone").value.trim();
+            if (pPhone) outputMessage += `\n연락처 : ${pPhone}`;
+        }
 
         outputMessage += `\n\n[하차 정보]\n`;
         outputMessage += `하차지 : ${dDisplay || "(장소 미선택)"}\n`;
         outputMessage += `일시 : ${dTimeStr}\n`;
-        outputMessage += `장비명 : ${productTag}\n`;
-        const dDetail = document.getElementById("d_addr_detail").value.trim();
-        const dFullAddr = dropState.addr ? (dDetail ? dropState.addr + " " + dDetail : dropState.addr) : "(주소 미선택)";
-        outputMessage += `주소 : ${dFullAddr}\n`;
-        outputMessage += `담당자 : ${dMgrName}`;
-        const dPhone = document.getElementById("d_phone").value.trim();
-        if (dPhone) outputMessage += `\n연락처 : ${dPhone}`;
+        outputMessage += `장비명 : ${productTag}`;
+        if (!dropState.slim) {
+            const dDetail = document.getElementById("d_addr_detail").value.trim();
+            const dFullAddr = dropState.addr ? (dDetail ? dropState.addr + " " + dDetail : dropState.addr) : "(주소 미선택)";
+            outputMessage += `\n주소 : ${dFullAddr}\n`;
+            outputMessage += `담당자 : ${dMgrName}`;
+            const dPhone = document.getElementById("d_phone").value.trim();
+            if (dPhone) outputMessage += `\n연락처 : ${dPhone}`;
+        }
 
         if (finalMemo) {
             outputMessage += `\n\n[전달사항]\n${finalMemo}`;
