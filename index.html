@@ -566,7 +566,7 @@
             <div class="logo-mark">🚚</div>
             <div class="brand-text">
                 <h1>Logistics Dispatcher Pro</h1>
-                <p>Enterprise Management System v5.0.1 · 최종수정 2026년 04월 20일 09:35</p>
+                <p>Enterprise Management System v5.0.1 · 최종수정 2026년 04월 28일 수정</p>
             </div>
         </div>
         <div style="text-align: right;">
@@ -681,7 +681,9 @@
             </div>
         </section>
 
-    </div> <div class="settings-card">
+    </div>
+
+    <div class="settings-card">
         <div class="field-group" style="margin-bottom: 0;">
             <label>운송 물품/장비명</label>
             <input type="text" id="equip_name" placeholder="예: Nordlys 장비 1대">
@@ -717,10 +719,6 @@
 </datalist>
 
 <script>
-    /**
-     * @constant MASTER_CONTACT_DATA
-     * 담당자별 고유 연락처 매핑 테이블
-     */
     const MASTER_CONTACT_DATA = {
         "김기훈": "010-3899-1656",
         "오상걸": "010-9969-0149",
@@ -741,10 +739,6 @@
         "김기훈": "선임"
     };
 
-    /**
-     * @constant PRESET_LOCATIONS
-     * 빈번하게 발생하는 장소의 프리셋 데이터 (용마창고 등)
-     */
     const PRESET_LOCATIONS = {
         "용마": {
             display: "김포 용마창고",
@@ -761,7 +755,7 @@
             lat: 37.4965,
             lng: 127.0276,
             mgr: "박윤아",
-            icon: "🏢"
+            icon: "🗼"
         },
         "부산사무소": {
             display: "켄델라 부산 사무소",
@@ -770,7 +764,15 @@
             lat: 35.1688,
             lng: 129.1317,
             mgr: "",
-            icon: "🏢"
+            icon: "🌊"
+        },
+        "제이메디": {
+            display: "송파 제이메디",
+            addr: "",
+            lat: 37.5145,
+            lng: 127.1058,
+            mgr: "",
+            icon: "🏥"
         }
     };
 
@@ -822,12 +824,9 @@
             refreshPhoneHint(prefix);
         }
         document.getElementById(prefix + "_addr_detail").value = data.detail || "";
-        // 선택 후 드롭다운 닫기
         document.getElementById("presetDropdown").classList.remove("open");
         document.getElementById("presetToggleBtn").classList.remove("open");
     }
-
-
 
     function setQuickDate(prefix, type) {
         const input = document.getElementById(prefix + "_date");
@@ -866,19 +865,11 @@
         btn.classList.toggle("open");
     }
 
-    /**
-     * @global State Management
-     * 상차 및 하차 포인트의 상태 객체
-     */
     const kakaoSearchProvider = null;
     
     let pickupState = { name: "", addr: "", lat: 0, lng: 0, map: null, marker: null };
     let dropState = { name: "", addr: "", lat: 0, lng: 0, map: null, marker: null };
 
-    /**
-     * @function initializeSearchEngine
-     * 검색 인풋과 드롭다운 포털을 연결하는 메인 엔진
-     */
     function initializeSearchEngine(prefix, stateStore) {
         const inputDom = document.getElementById(prefix + "_search");
         const portalDom = document.getElementById(prefix + "_portal");
@@ -888,7 +879,6 @@
             
             if (!query) {
                 portalDom.classList.remove("active");
-                // 검색창 비우면 주소/상세주소/지도/담당자/연락처 초기화
                 document.getElementById(prefix + "_addr").value = "";
                 document.getElementById(prefix + "_addr_detail").value = "";
                 document.getElementById(prefix + "_mgr").value = "";
@@ -902,7 +892,6 @@
                 return;
             }
 
-            // [Step 1] 프리셋 키워드 우선 체크 (부분 포함)
             const matchedPreset = Object.keys(PRESET_LOCATIONS).find(k => query.includes(k));
             if (matchedPreset) {
                 const data = PRESET_LOCATIONS[matchedPreset];
@@ -916,7 +905,6 @@
                 return;
             }
 
-            // [Step 2] 카카오 맵 API 실시간 키워드 검색 수행
             try {
                 window._kakaoPS.keywordSearch(query, (results, status) => {
                     if (status === kakao.maps.services.Status.OK) {
@@ -936,17 +924,11 @@
         });
     }
 
-    /**
-     * @function renderSearchItems
-     * API 검색 결과를 HTML 리스트로 변환하여 렌더링
-     */
     function renderSearchItems(prefix, items, stateStore) {
         const portal = document.getElementById(prefix + "_portal");
         portal.innerHTML = "";
 
-        // 최대 상위 10개 결과 노출
         items.slice(0, 10).forEach(item => {
-            // 도로명 주소(road_address_name)를 우선 채택
             const fullAddress = item.road_address_name || item.address_name;
             
             const node = document.createElement("div");
@@ -966,28 +948,20 @@
         portal.classList.add("active");
     }
 
-    /**
-     * @function executeSelection
-     * 사용자가 특정 장소를 선택했을 때 데이터를 바인딩하고 지도를 갱신
-     */
     function executeSelection(prefix, title, address, lat, lng, stateStore) {
-        // UI 값 동기화
         document.getElementById(prefix + "_search").value = title;
         document.getElementById(prefix + "_addr").value = address;
         
-        // 상태 저장
         stateStore.name = title;
         stateStore.addr = address;
         stateStore.lat = lat;
         stateStore.lng = lng;
 
-        // 지도 가시화
         const wrapDom = document.getElementById(prefix + "_map_wrap");
         wrapDom.classList.add("visible");
 
         const targetCoord = new kakao.maps.LatLng(lat, lng);
         
-        // 지도 인스턴스 초기화 또는 갱신
         if (!stateStore.map) {
             const mapDom = document.getElementById(prefix + "_map_dom");
             stateStore.map = new kakao.maps.Map(mapDom, { center: targetCoord, level: 3 });
@@ -995,51 +969,36 @@
         } else {
             stateStore.map.setCenter(targetCoord);
             stateStore.marker.setPosition(targetCoord);
-            // 렌더링 타이밍 보정
             setTimeout(() => stateStore.map.relayout(), 300);
         }
     }
 
-    /**
-     * @function parseRegionTag
-     * 주소 문자열로부터 '구/시' 명칭을 추출하여 라벨화
-     */
     function parseRegionTag(address) {
         if (!address) return "";
         const parts = address.split(" ");
         const p0 = parts[0];
         const p1 = parts[1] || "";
 
-        // 서울 → 구명 (서울 서초구 → "서초")
         if (p0 === "서울특별시" || p0 === "서울") {
             return p1.replace(/구$/, "");
         }
-        // 경기/도 단위 → 시/군명 (경기 가평군 → "가평")
         const doList = ["경기도","경기","강원도","강원","충청북도","충북","충청남도","충남",
                         "전라북도","전북","전라남도","전남","경상북도","경북","경상남도","경남"];
         if (doList.includes(p0)) {
             return p1.replace(/시$|군$/, "");
         }
-        // 제주특별자치도 / 제주 → "제주"
         if (p0 === "제주특별자치도" || p0 === "제주") {
             return "제주";
         }
-        // 세종특별자치시 → "세종"
         if (p0 === "세종특별자치시" || p0 === "세종") {
             return "세종";
         }
-        // 광역시 전체 표기 (부산광역시 → "부산")
         if (p0.endsWith("광역시")) {
             return p0.replace(/광역시$/, "");
         }
-        // 축약형 광역시 및 나머지 (부산, 인천, 대전, 대구, 울산, 광주 등)
         return p0;
     }
 
-    /**
-     * @function refreshPhoneHint
-     * 담당자 선택 시 연락처 미리보기를 업데이트
-     */
     function refreshPhoneHint(prefix) {
         const nameVal = document.getElementById(prefix + "_mgr").value.trim();
         const hintDom = document.getElementById(prefix + "_hint");
@@ -1054,15 +1013,9 @@
         }
     }
 
-    /**
-     * @function processFinalOutput
-     * 모든 입력 데이터를 취합하여 최종 메시지 문자열 생성
-     */
     function processFinalOutput() {
-        // 폼 필드 데이터 수집
         function formatDate(dateVal) {
             if (!dateVal) return "";
-            // UTC 밀림 방지: 문자열 직접 파싱
             const [y, m, d] = dateVal.split("-").map(Number);
             const dt = new Date(y, m - 1, d);
             const days = ["일","월","화","수","목","금","토"];
@@ -1082,13 +1035,9 @@
         const productTag = document.getElementById("equip_name").value.trim() || "(미입력)";
         const finalMemo = document.getElementById("order_memo").value.trim();
 
-        // 장소명에서 지역명 포함 suffix 제거 후 앞에 지역명 붙임
-        // 예) "밴스의원 부산점" + 지역"부산" → "부산 밴스의원"
-        // 예) "CNP차앤박 인천점" + 지역"인천" → "인천 CNP차앤박"
         function buildDisplay(name, region) {
             if (!region) return name;
             if (name.startsWith(region)) return name;
-            // "OO점", "OO지점", "OO센터" 형태에서 지역명 포함 suffix 제거
             const cleaned = name
                 .replace(new RegExp(region + "\\s*(점|지점|센터|본점|지사|직영점|병원점)?$"), "")
                 .trim();
@@ -1101,7 +1050,6 @@
         const dRegion = parseRegionTag(dropState.addr);
         const dDisplay = buildDisplay(dropState.name, dRegion);
 
-        // 템플릿 엔진 구동
         let outputMessage = `안녕하세요 팀장님\n아래의 내역 배차 부탁드립니다\n\n[상차 정보]\n`;
         outputMessage += `상차지 : ${pDisplay || "(장소 미선택)"}\n`;
         outputMessage += `일시 : ${pTimeStr}\n`;
@@ -1124,26 +1072,19 @@
         const dPhone = document.getElementById("d_phone").value.trim();
         if (dPhone) outputMessage += `\n연락처 : ${dPhone}`;
 
-        // 비고 섹션 추가 (있는 경우에만)
         if (finalMemo) {
             outputMessage += `\n\n[전달사항]\n${finalMemo}`;
         }
         outputMessage += `\n\n감사합니다!`;
 
-        // 출력 박스 업데이트
         document.getElementById("output_box").value = outputMessage;
         
-        // 스크롤 이동
         window.scrollTo({
             top: document.body.scrollHeight,
             behavior: 'smooth'
         });
     }
 
-    /**
-     * @function handleCopyAction
-     * 결과물을 클립보드에 복사하고 UI 피드백 제공
-     */
     function handleCopyAction() {
         const targetText = document.getElementById("output_box");
         if (!targetText.value) return;
@@ -1163,10 +1104,6 @@
         }, 2000);
     }
 
-    /**
-     * @event DOMContentLoaded
-     * 페이지 로드 즉시 엔진 가동 및 이벤트 리스너 등록
-     */
     document.addEventListener("DOMContentLoaded", () => {
         renderPresetSidebar();
         kakao.maps.load(() => {
@@ -1178,7 +1115,6 @@
             document.getElementById("p_mgr").addEventListener("input", () => refreshPhoneHint("p"));
             document.getElementById("d_mgr").addEventListener("input", () => refreshPhoneHint("d"));
 
-            // 연락처 직접 입력 시 자동 하이픈
             function formatPhone(input) {
                 let v = input.value.replace(/[^0-9]/g, "");
                 if (v.length <= 3) {
